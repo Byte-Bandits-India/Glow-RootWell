@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { Container } from "../layout/Container";
 import { Button } from "../ui/Button";
@@ -9,58 +8,7 @@ import { ArrowRight } from "lucide-react";
 
 export const HeroReference: React.FC = () => {
   return (
-    <div className="bg-[#0B2C13] text-white pt-1.5 sm:pt-3 pb-2 sm:pb-3 relative min-h-[100dvh] 4xl:min-h-0 4xl:h-auto 4xl:py-24 flex flex-col justify-between overflow-x-clip">
-      {/* Top Navigation Bar matching home.html content */}
-      <Container className="shrink-0">
-        <nav className="flex items-center justify-between py-1.5 sm:py-2.5 border-b border-white/10 text-sm">
-          {/* Logo with teal leaf circle */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group">
-            <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold shadow-sm">
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-                <path d="M12 22c0-6 1-10 8-16-1 7-3 11-8 16zM12 22C12 15 9 11 3 8c0 6 3 10 9 14z" />
-              </svg>
-            </span>
-            <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-white">
-              Rootwell
-            </span>
-          </Link>
-
-          {/* Desktop Links from home.html */}
-          <div className="hidden md:flex items-center gap-5 lg:gap-8 text-xs lg:text-sm font-medium text-white/85">
-            <Link href="/library" className="hover:text-white transition-colors">
-              Library
-            </Link>
-            <Link href="/#how" className="hover:text-white transition-colors">
-              How it works
-            </Link>
-            <Link href="/#pricing" className="hover:text-white transition-colors">
-              Pricing
-            </Link>
-            <Link href="/#faq" className="hover:text-white transition-colors">
-              FAQ
-            </Link>
-          </div>
-
-          {/* Action CTAs */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/library"
-              className="hidden sm:inline-flex text-xs sm:text-sm font-semibold text-white/80 hover:text-white px-2 py-1.5 transition-colors"
-            >
-              See the library
-            </Link>
-            <Button
-              href="/#pricing"
-              variant="outline"
-              size="sm"
-              className="bg-white text-[#0B2C13] border-white hover:bg-white/90 font-semibold text-xs py-1.5 px-3 sm:py-2 sm:px-4"
-            >
-              Get instant access
-            </Button>
-          </div>
-        </nav>
-      </Container>
-
+    <div className="bg-[#0B2C13] text-white py-10 sm:py-14 lg:py-16 relative min-h-[calc(100dvh-5rem)] flex items-center overflow-x-clip">
       {/* Main Hero Split Content - Bold and prominent on 100% desktop screens */}
       <Container className="my-auto flex-1 flex items-center py-4 sm:py-6 lg:py-8 max-w-[1240px] xl:max-w-[1280px]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 items-center w-full">

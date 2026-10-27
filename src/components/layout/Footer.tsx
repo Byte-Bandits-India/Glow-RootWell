@@ -1,11 +1,13 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import { Container } from "./Container";
 import { Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-[var(--color-primary)] text-[var(--color-text-inverse)] pt-16 pb-12 border-t border-[var(--color-border-dark)]">
+    <footer id="footer" className="bg-[var(--color-primary)] text-[var(--color-text-inverse)] pt-16 pb-12 border-t border-[var(--color-border-dark)]">
       <Container>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-14 border-b border-[rgba(215,228,201,0.15)]">
           {/* Brand Col */}

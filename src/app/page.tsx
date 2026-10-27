@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
-import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { HeroReference } from "@/components/home/HeroReference";
 import { SocialProofBar } from "@/components/home/SocialProofBar";
@@ -28,7 +27,7 @@ export default function HomePage() {
   const featuredPrompts = PROMPTS.slice(0, 4);
 
   return (
-    <main className="min-h-screen flex flex-col bg-[var(--color-background)]">
+    <div className="flex flex-col bg-[var(--color-background)]">
       {/* 1. Hero Section (Matching Reference Top-Left) */}
       <HeroReference />
 
@@ -102,15 +101,12 @@ export default function HomePage() {
         </Container>
       </Section>
 
-      {/* Footer */}
-      <Footer />
-
       {/* Interactive Prompt Preview Modal */}
       <PromptModal
         prompt={selectedPrompt}
         isOpen={Boolean(selectedPrompt)}
         onClose={() => setSelectedPrompt(null)}
       />
-    </main>
+    </div>
   );
 }

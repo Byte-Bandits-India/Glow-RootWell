@@ -2,8 +2,6 @@
 
 import React, { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/layout/Container";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
@@ -120,9 +118,7 @@ function LibraryContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
-      <Navbar variant="light" />
-
+    <div className="flex-1 flex flex-col bg-[var(--color-background)]">
       {/* Library Hero Banner */}
       <div className="bg-[var(--color-secondary)]/35 border-b border-[var(--color-border)] py-10 sm:py-14">
         <Container>
@@ -452,8 +448,6 @@ function LibraryContent() {
           </main>
         </div>
       </Container>
-
-      <Footer />
 
       {/* Interactive Modal */}
       <PromptModal
