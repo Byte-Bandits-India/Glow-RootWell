@@ -92,9 +92,9 @@ export const MissionStatement: React.FC = () => {
         setIsSectionHovered(false);
         setHoveredItemId(null);
       }}
-      className="bg-[#0B2C13] text-white py-16 sm:py-20 lg:py-28 relative overflow-hidden border-t border-white/10 transition-colors duration-500"
+      className="bg-[#0B2C13] text-white py-12 sm:py-20 lg:py-28 relative overflow-hidden border-t border-white/10 transition-colors duration-500"
     >
-      {/* Embedded self-contained animation styles for guaranteed fluid transitions */}
+      {/* Embedded self-contained animation styles for fluid transitions */}
       <style>{`
         @keyframes textSlideReveal {
           0% {
@@ -119,14 +119,16 @@ export const MissionStatement: React.FC = () => {
       `}</style>
 
       <Container>
-        {/* Top "Works with" strip with expanded AI models */}
-        <div className="flex flex-wrap items-center gap-x-5 sm:gap-x-7 lg:gap-x-8 gap-y-2.5 text-sm sm:text-base mb-12 sm:mb-16 lg:mb-20 select-none">
-          <span className="text-white/55 font-normal shrink-0">Works with</span>
-          <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 lg:gap-x-7 gap-y-2 font-semibold text-white/90">
+        {/* Top "Works with" strip with styled pill tags on mobile */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 mb-10 sm:mb-16 lg:mb-20 select-none">
+          <span className="text-white/55 text-xs sm:text-base font-medium uppercase sm:normal-case tracking-wider sm:tracking-normal shrink-0">
+            Works with
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5 font-medium text-xs sm:text-sm lg:text-base text-white/90">
             {AI_TOOLS.map((tool) => (
               <span
                 key={tool}
-                className="px-2 py-0.5 rounded-md hover:bg-white/10 hover:text-[var(--color-accent)] transition-all cursor-default"
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 hover:text-[var(--color-accent)] border border-white/10 transition-all cursor-default"
               >
                 {tool}
               </span>
@@ -137,8 +139,8 @@ export const MissionStatement: React.FC = () => {
         {/* Main 2-Column Split */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           {/* Left Column: Headline with smooth animated transition when text changes */}
-          <div className="lg:col-span-7 flex flex-col justify-center min-h-[140px] sm:min-h-[180px] lg:min-h-[220px]">
-            <h2 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-[64px] font-normal tracking-tight text-white leading-[1.08]">
+          <div className="lg:col-span-7 flex flex-col justify-center min-h-[90px] sm:min-h-[160px] lg:min-h-[220px]">
+            <h2 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-[64px] font-normal tracking-tight text-white leading-[1.10] sm:leading-[1.08]">
               <div key={activeKey} className="space-y-1">
                 <span className="anim-line-primary">
                   {activeTitle.line1}
@@ -155,23 +157,24 @@ export const MissionStatement: React.FC = () => {
           </div>
 
           {/* Right Column: Paragraph and Divider List */}
-          <div className="lg:col-span-5 pt-2">
-            <p className="text-sm sm:text-base lg:text-[17px] text-[#A3B8B0] leading-relaxed max-w-lg mb-8 sm:mb-10">
+          <div className="lg:col-span-5 pt-1 sm:pt-2">
+            <p className="text-sm sm:text-base lg:text-[17px] text-[#A3B8B0] leading-relaxed max-w-lg mb-6 sm:mb-10">
               AI already knows a lot about skin, gut and nutrition. A well-built prompt is how you get that knowledge shaped around you.
             </p>
 
-            {/* List with Dividers */}
+            {/* List with Dividers - Touch tap support for mobile */}
             <ul className="list-none m-0 p-0 border-b border-white/15">
               {PAIN_POINTS.map((item) => {
                 const isItemActive = hoveredItemId === item.id;
                 return (
                   <li
                     key={item.id}
+                    onClick={() => setHoveredItemId(isItemActive ? null : item.id)}
                     onMouseEnter={() => setHoveredItemId(item.id)}
                     onMouseLeave={() => setHoveredItemId(null)}
-                    className={`border-t border-white/15 py-4 px-2 -mx-2 transition-all duration-200 cursor-pointer flex items-center justify-between text-sm sm:text-base font-medium rounded-lg ${
+                    className={`border-t border-white/15 py-3.5 sm:py-4 px-3 sm:px-2 -mx-2 transition-all duration-200 cursor-pointer flex items-center justify-between text-sm sm:text-base font-medium rounded-xl sm:rounded-lg select-none active:bg-white/10 ${
                       isItemActive
-                        ? "text-[var(--color-accent)] bg-white/5 pl-3"
+                        ? "text-[var(--color-accent)] bg-white/5 pl-4 sm:pl-3"
                         : "text-white/90 hover:text-white"
                     }`}
                   >
