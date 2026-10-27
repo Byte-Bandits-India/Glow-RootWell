@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand colors matching reference image */
+  --color-primary: #0B2C13;
+  --color-primary-hover: #102B18;
+  --color-secondary: #D7E4C9;
+  --color-secondary-light: #EBF2E4;
+  --color-accent: #10B982;
+  --color-accent-hover: #0E9F6F;
+
+  /* Backgrounds */
+  --color-background: #F0EFE7;
+  --color-background-warm: #FAF8F5;
+  --color-surface: #FFFFFF;
+  --color-surface-dark: #14331C;
+  --color-surface-moss: #1A3E23;
+  --color-surface-sage: #D7E4C9;
+  --color-surface-forest: #0B2C13;
+
+  /* Typography colors */
+  --color-text-primary: #0B2C13;
+  --color-text-secondary: #526454;
+  --color-text-muted: #738576;
+  --color-text-inverse: #FFFFFF;
+  --color-text-inverse-muted: #D7E4C9;
+
+  /* Borders */
+  --color-border: #E1E5DA;
+  --color-border-dark: #1E3D26;
+  --color-border-sage: #C3D2B5;
+
+  /* Single consistent font matching home.html */
+  --font-heading: 'Schibsted Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: 'Schibsted Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Layout */
+  --container-width: 1240px;
+  --section-spacing: clamp(3.5rem, 6vw, 6.5rem);
+
+  /* Reusable UI tokens */
+  --radius-card: 20px;
+  --radius-card-lg: 32px;
+  --radius-button: 9999px;
+  --radius-input: 12px;
+  --radius-badge: 9999px;
+
+  --shadow-card: 0 4px 20px rgba(11, 44, 19, 0.05);
+  --shadow-card-hover: 0 16px 36px -10px rgba(11, 44, 19, 0.12);
+  --shadow-elevated: 0 24px 50px -16px rgba(11, 44, 19, 0.18);
+  --shadow-dark: 0 30px 60px -25px rgba(0, 0, 0, 0.55);
+
+  --transition-fast: 180ms ease;
+  --transition-normal: 250ms ease;
+
+  /* Balanced Hero Typography & Orb sizing tokens */
+  --font-hero-title: clamp(2.8rem, 4.5vw, 4.5rem);
+  --font-hero-desc: clamp(1.05rem, 1.25vw, 1.25rem);
+  --hero-orb-size: 500px;
+}
+
+
+@theme {
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-dark: var(--color-surface-dark);
+  --color-surface-sage: var(--color-surface-sage);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-border: var(--color-border);
+  --color-border-dark: var(--color-border-dark);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --breakpoint-3xl: 1920px;
+  --breakpoint-4xl: 2560px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+h2 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+/* Custom styled focus visible */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4CFC0;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A6B4A1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Hero Fluid Typography Classes */
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-hero-title);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+}
+
+.hero-description {
+  font-size: var(--font-hero-desc);
+  line-height: 1.55;
+  color: rgba(215, 228, 201, 0.88);
+}
+
+/* Editorial Text Reveal Animation */
+@keyframes textAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-text-appear {
+  animation: textAppear 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
