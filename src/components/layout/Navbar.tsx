@@ -17,12 +17,19 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "light" }) => {
 
   const isDark = variant === "dark";
 
-  const navLinks = [
-    { label: "Library", href: "/library" },
+  interface NavLinkItem {
+    label: string;
+    href: string;
+    badge?: string;
+  }
+
+  const navLinks: NavLinkItem[] = [
+    { label: "Library", href: "/library", badge: "500+" },
     { label: "How it works", href: "/#how" },
     { label: "Pricing", href: "/#pricing" },
     { label: "FAQ", href: "/#faq" },
   ];
+
 
   return (
     <header
