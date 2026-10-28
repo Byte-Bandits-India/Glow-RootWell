@@ -17,14 +17,11 @@ import { FaqAccordion } from "@/components/home/FaqAccordion";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { PromptCard } from "@/components/shared/PromptCard";
 import { PromptModal } from "@/components/shared/PromptModal";
-import { PROMPTS, PromptItem } from "@/data/promptsData";
+import { PromptItem } from "@/data/promptsData";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   const [selectedPrompt, setSelectedPrompt] = useState<PromptItem | null>(null);
-
-  // Featured sample prompts for the homepage preview
-  const featuredPrompts = PROMPTS.slice(0, 4);
 
   return (
     <div className="flex flex-col bg-[var(--color-background)]">
@@ -43,12 +40,8 @@ export default function HomePage() {
       {/* 4. Observed Stats & Stories Section (Matching Reference Middle-Right) */}
       <ObservedStories />
 
-      {/* 8. Pricing Section */}
-      <Section variant="sage" padding="default" id="pricing">
-        <Container>
-          <PricingSection />
-        </Container>
-      </Section>
+      {/* 5. How It Works Section */}
+      <TakeControlSection />
 
       {/* 9. FAQ Section */}
       <Section variant="ivory" padding="default" id="faq">
@@ -63,28 +56,28 @@ export default function HomePage() {
       </Section>
 
       {/* 10. Final Call to Action */}
-      <Section variant="forest" padding="default">
+      <Section variant="sage" padding="default">
         <Container size="narrow">
           <div className="text-center space-y-6">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[rgba(16,185,130,0.18)] border border-[rgba(16,185,130,0.3)] text-xs font-semibold text-[var(--color-accent)]">
-              <Sparkles className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/75 border border-[#0B2C13]/15 text-xs font-semibold text-[#0B2C13] shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#14532D]" />
               Instant Access Today
             </span>
 
-            <h2 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal text-white leading-tight">
+            <h2 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal text-[#0B2C13] leading-tight tracking-tight">
               Your healthiest self is one structured prompt away.
             </h2>
 
-            <p className="text-xs sm:text-sm text-[var(--color-secondary)]/85 max-w-xl mx-auto">
+            <p className="text-xs sm:text-sm text-[#526454] max-w-xl mx-auto leading-relaxed">
               500+ expert-written prompts for skin, gut, nutrition and fitness. Works with ChatGPT, Claude, Gemini and any AI.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
               <Button
-                href="/#pricing"
-                variant="outline"
+                href="/pricing"
+                variant="primary"
                 size="lg"
-                className="bg-white text-[#0B2C13] border-white hover:bg-white/90 font-semibold"
+                className="bg-[#0B2C13] text-white hover:bg-[#0B2C13]/90 font-semibold shadow-sm px-8"
               >
                 Get Instant Access
               </Button>
@@ -92,7 +85,7 @@ export default function HomePage() {
                 href="/library"
                 variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10"
+                className="bg-white/80 hover:bg-white text-[#0B2C13] border-[#0B2C13]/25 hover:border-[#0B2C13] font-semibold px-8 transition-all"
               >
                 Explore Prompt Library
               </Button>

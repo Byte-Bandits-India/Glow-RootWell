@@ -7,12 +7,14 @@ import { Calendar, ArrowRight, Clock } from "lucide-react";
 export interface PromptCardProps {
   prompt: PromptItem;
   viewMode?: "grid" | "list";
+  isOwned?: boolean;
   onSelect: (prompt: PromptItem) => void;
 }
 
 export const PromptCard: React.FC<PromptCardProps> = ({
   prompt,
   viewMode = "grid",
+  isOwned = false,
   onSelect,
 }) => {
   const formattedDate = new Date(prompt.updated + "T00:00:00").toLocaleDateString(
@@ -37,9 +39,19 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={prompt.category} />
             <Badge variant={prompt.bundle} />
+            {isOwned && prompt.bundle !== "free" && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                Unlocked
+              </span>
+            )}
+            {prompt.subtopic && (
+              <span className="text-[11px] text-[var(--color-text-secondary)] bg-[var(--color-background)] px-2 py-0.5 rounded-md truncate max-w-[200px]">
+                {prompt.subtopic}
+              </span>
+            )}
             <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {prompt.duration}
+              {prompt.timeSaved || prompt.duration || "5–10 mins"}
             </span>
           </div>
 
@@ -48,15 +60,16 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           </h3>
 
           <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2 leading-relaxed">
-            {prompt.description}
+            {prompt.purpose || prompt.description}
           </p>
         </div>
 
-        <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--color-border)]">
-          <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
-            {formattedDate}
-          </span>
+        <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--color-border)]">
+          {prompt.revenuePotential && (
+            <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 whitespace-nowrap">
+              {prompt.revenuePotential}
+            </span>
+          )}
 
           <button
             type="button"
@@ -79,30 +92,49 @@ export const PromptCard: React.FC<PromptCardProps> = ({
       className="group flex flex-col justify-between h-full border-[var(--color-border)] hover:border-[var(--color-accent)] min-h-[250px]"
     >
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <Badge variant={prompt.category} />
-          <Badge variant={prompt.bundle} />
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge variant={prompt.category} />
+            <Badge variant={prompt.bundle} />
+          </div>
+          {isOwned && prompt.bundle !== "free" && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+              Unlocked
+            </span>
+          )}
         </div>
+
+        {prompt.subtopic && (
+          <span className="text-[11px] font-medium text-gray-500 block truncate">
+            {prompt.subtopic}
+          </span>
+        )}
 
         <h3 className="font-heading text-lg font-semibold leading-snug text-[var(--color-text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
           {prompt.title}
         </h3>
 
         <p className="text-sm text-[var(--color-text-secondary)] line-clamp-3 leading-relaxed">
-          {prompt.description}
+          {prompt.purpose || prompt.description}
         </p>
       </div>
 
       <div className="pt-4 mt-4 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
-        <span className="flex items-center gap-1.5">
-          <Calendar className="w-3.5 h-3.5" />
-          {formattedDate}
+        <span className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5" />
+          {prompt.timeSaved || prompt.duration || "5–10 mins"}
         </span>
 
-        <span className="inline-flex items-center gap-1 font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-accent)] transition-colors">
-          <span>View prompt</span>
-          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-        </span>
+        {prompt.revenuePotential ? (
+          <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+            {prompt.revenuePotential}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+            <span>View</span>
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        )}
       </div>
     </Card>
   );

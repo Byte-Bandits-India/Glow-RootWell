@@ -1,22 +1,27 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Container } from "./Container";
 import { Button } from "../ui/Button";
-import { Menu, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { Menu, X, ChevronDown, BookOpen, Sparkles, LogOut, LayoutDashboard } from "lucide-react";
 
 export interface NavbarProps {
   variant?: "light" | "dark" | "transparent";
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ variant }) => {
+export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // If variant is not explicitly provided, adapt by pathname (dark on homepage '/', light elsewhere)
-  const isDark = variant ? variant === "dark" : pathname === "/";
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  // Green (#0B2C13) navbar across all screens and pages
+  const isDark = variant !== "light";
 
   interface NavLinkItem {
     label: string;
@@ -25,9 +30,9 @@ export const Navbar: React.FC<NavbarProps> = ({ variant }) => {
 
   const navLinks: NavLinkItem[] = [
     { label: "Library", href: "/library" },
-    { label: "How it works", href: "/#how" },
-    { label: "Pricing", href: "/#pricing" },
-    { label: "FAQ", href: "/#faq" },
+    { label: "How it works", href: "/how-it-works" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "FAQ", href: "/faq" },
   ];
 
   // Prevent background scrolling when mobile drawer is open
@@ -45,10 +50,24 @@ export const Navbar: React.FC<NavbarProps> = ({ variant }) => {
   // Close drawer on Escape key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileMenuOpen(false);
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
+        setProfileDropdownOpen(false);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -113,32 +132,128 @@ export const Navbar: React.FC<NavbarProps> = ({ variant }) => {
             })}
           </nav>
 
-          {/* Action CTAs */}
+          {/* Action CTAs & Profile State */}
           <div className="hidden sm:flex items-center gap-3">
             <Button
-              href="/#footer"
+              href="/contact"
               variant="outline"
               size="sm"
               className={
                 isDark
-                  ? "border-white/30 text-white hover:bg-white/10 hover:border-white font-medium"
-                  : "border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-black/5 font-medium"
+                  ? "border-white/30 text-white hover:bg-white/10 hover:border-white font-medium text-xs sm:text-sm py-1.5 px-3 sm:py-2 sm:px-4"
+                  : "border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-black/5 font-medium text-xs sm:text-sm py-1.5 px-3 sm:py-2 sm:px-4"
               }
             >
               Contact Us
             </Button>
-            <Button
-              href="/#pricing"
-              variant={isDark ? "outline" : "primary"}
-              size="sm"
-              className={
-                isDark
-                  ? "bg-white text-[#0B2C13] border-white hover:bg-white/90 font-semibold text-xs sm:text-sm py-1.5 px-3 sm:py-2 sm:px-4"
-                  : ""
-              }
-            >
-              Get Instant Access
-            </Button>
+
+            {!user && (
+              <Button
+                href="/pricing"
+                variant={isDark ? "outline" : "primary"}
+                size="sm"
+                className={
+                  isDark
+                    ? "bg-white text-[#0B2C13] border-white hover:bg-white/90 font-semibold text-xs sm:text-sm py-1.5 px-3 sm:py-2 sm:px-4"
+                    : ""
+                }
+              >
+                Get Instant Access
+              </Button>
+            )}
+
+            {/* Sign in and profile button positioned last */}
+            {user ? (
+              /* Authenticated User Profile Pill & Dropdown (LAST) */
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex items-center gap-2.5 py-1.5 px-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 transition-all text-white text-xs sm:text-sm font-medium cursor-pointer"
+                  aria-expanded={profileDropdownOpen}
+                  aria-haspopup="true"
+                >
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-6 h-6 rounded-full object-cover border border-[var(--color-accent)] shrink-0"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold text-[11px] uppercase shrink-0">
+                      {user.name.charAt(0)}
+                    </div>
+                  )}
+                  <span className="max-w-[110px] truncate">{user.name.split(" ")[0]}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-white/70 transition-transform ${
+                      profileDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-60 bg-white text-[#0B2C13] rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in duration-150">
+                    <div className="px-4 py-2.5 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-[#0B2C13] truncate">
+                        {user.name}
+                      </p>
+                      <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
+                    </div>
+
+                    <div className="py-1">
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[#0B2C13] hover:bg-[#F0EFE7] transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-[#526454]" />
+                        <span>My Dashboard & Plans</span>
+                      </Link>
+                      <Link
+                        href="/library"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[#0B2C13] hover:bg-[#F0EFE7] transition-colors"
+                      >
+                        <BookOpen className="w-4 h-4 text-[#526454]" />
+                        <span>My Prompt Library</span>
+                      </Link>
+                      <Link
+                        href="/pricing"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[#0B2C13] hover:bg-[#F0EFE7] transition-colors"
+                      >
+                        <Sparkles className="w-4 h-4 text-[#526454]" />
+                        <span>Membership Plans</span>
+                      </Link>
+                    </div>
+
+                    <div className="pt-1 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileDropdownOpen(false);
+                          logout();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors text-left cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Unauthenticated Sign In Link (LAST) */
+              <Link
+                href="/login"
+                className="text-xs sm:text-sm font-medium text-white/85 hover:text-white transition-colors px-2.5 py-1"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Hamburger Button */}
@@ -195,6 +310,27 @@ export const Navbar: React.FC<NavbarProps> = ({ variant }) => {
             </button>
           </div>
 
+          {/* User Profile Card in Mobile Drawer (if authenticated) */}
+          {user && (
+            <div className="mt-4 p-3.5 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-3">
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full object-cover border border-[var(--color-accent)] shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold text-sm uppercase shrink-0">
+                  {user.name.charAt(0)}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-white truncate">{user.name}</p>
+                <p className="text-xs text-white/70 truncate">{user.email}</p>
+              </div>
+            </div>
+          )}
+
           {/* Drawer Navigation Links */}
           <nav className="flex flex-col gap-1.5 pt-6">
             {navLinks.map((link) => {
@@ -220,7 +356,7 @@ export const Navbar: React.FC<NavbarProps> = ({ variant }) => {
         {/* Drawer Action Buttons at Bottom */}
         <div className="pt-6 border-t border-white/10 flex flex-col gap-3">
           <Button
-            href="/#footer"
+            href="/contact"
             variant="outline"
             size="md"
             fullWidth
@@ -229,16 +365,43 @@ export const Navbar: React.FC<NavbarProps> = ({ variant }) => {
           >
             Contact Us
           </Button>
-          <Button
-            href="/#pricing"
-            variant="accent"
-            size="md"
-            fullWidth
-            className="bg-[var(--color-accent)] text-[#0B2C13] font-semibold justify-center"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Get Instant Access
-          </Button>
+
+          {user ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                logout();
+              }}
+              className="w-full py-2.5 px-4 rounded-xl border border-red-400/30 text-red-300 hover:bg-red-500/10 font-medium text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          ) : (
+            <>
+              <Button
+                href="/pricing"
+                variant="accent"
+                size="md"
+                fullWidth
+                className="bg-[var(--color-accent)] !text-white font-semibold justify-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Get Instant Access
+              </Button>
+              <Button
+                href="/login"
+                variant="outline"
+                size="md"
+                fullWidth
+                className="border-white/20 text-white hover:bg-white/10 justify-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sign In
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

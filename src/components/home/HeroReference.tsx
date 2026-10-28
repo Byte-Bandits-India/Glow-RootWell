@@ -26,11 +26,11 @@ export const HeroReference: React.FC = () => {
             {/* Pill Buttons Row - responsive wrap & full touch targets on mobile */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1 sm:pt-2 w-full sm:w-auto">
               <Button
-                href="/#pricing"
+                href="/pricing"
                 variant="accent"
                 size="md"
                 className="w-full sm:w-auto justify-center bg-[var(--color-accent)] text-[#0B2C13] font-semibold text-sm sm:text-base py-3.5 px-6 sm:py-4 sm:px-8 rounded-full shadow-lg hover:brightness-105 active:scale-[0.98] transition-all border-0"
-                rightIcon={<ArrowRight className="w-4 h-4 text-[#0B2C13]" />}
+                rightIcon={<ArrowRight className="w-4 h-4 text-white" />}
               >
                 Get instant access
               </Button>

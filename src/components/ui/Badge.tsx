@@ -1,7 +1,12 @@
 import React from "react";
-import { Sparkles, HeartHandshake, Apple, Activity, Check, Star, ShieldCheck } from "lucide-react";
+import { Sparkles, HeartHandshake, Apple, Activity, Check, Star, ShieldCheck, TrendingUp, Clock } from "lucide-react";
 
 export type BadgeVariant =
+  | "fat_loss"
+  | "sales"
+  | "content"
+  | "delivery"
+  | "productivity"
   | "skin"
   | "gut"
   | "nutrition"
@@ -31,6 +36,36 @@ export const Badge: React.FC<BadgeProps> = ({
 
   const getVariantStyles = () => {
     switch (variant) {
+      case "fat_loss":
+        return {
+          classes: "bg-[#FCE7E1] text-[#7F2F1B] border border-[#F3C5BA]",
+          icon: <Activity className="w-3.5 h-3.5 shrink-0" />,
+          label: "Fat Loss & Metabolism",
+        };
+      case "sales":
+        return {
+          classes: "bg-[#F9EBBF] text-[#694E0E] border border-[#EEDB9F]",
+          icon: <TrendingUp className="w-3.5 h-3.5 shrink-0" />,
+          label: "Sales & Conversion",
+        };
+      case "content":
+        return {
+          classes: "bg-[#EAEFFD] text-[#2E3F9B] border border-[#C5D3FB]",
+          icon: <Sparkles className="w-3.5 h-3.5 shrink-0" />,
+          label: "Content & Brand",
+        };
+      case "delivery":
+        return {
+          classes: "bg-[#DDEED0] text-[#244E16] border border-[#C2DCAD]",
+          icon: <HeartHandshake className="w-3.5 h-3.5 shrink-0" />,
+          label: "Client Transformation",
+        };
+      case "productivity":
+        return {
+          classes: "bg-[#D1EBE2] text-[#134F43] border border-[#B1DDD0]",
+          icon: <Clock className="w-3.5 h-3.5 shrink-0" />,
+          label: "Productivity & Focus",
+        };
       case "skin":
         return {
           classes: "bg-[#FCE7E1] text-[#7F2F1B] border border-[#F3C5BA]",

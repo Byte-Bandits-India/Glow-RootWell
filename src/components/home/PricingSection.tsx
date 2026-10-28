@@ -1,13 +1,54 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { PRICING_PLANS } from "@/data/siteData";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { Check, ShieldCheck, Zap } from "lucide-react";
+import { Check, ShieldCheck, Zap, Loader2, Sparkles } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { initiateCheckout } from "@/lib/checkout";
 
 export const PricingSection: React.FC = () => {
   const [currency, setCurrency] = useState<"inr" | "usd">("inr");
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  const [feedbackMsg, setFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const { user, refreshUser } = useAuth();
+  const router = useRouter();
+
+  const handleBuyPlan = async (planId: "starter" | "pro" | "membership") => {
+    setFeedbackMsg(null);
+
+    if (!user) {
+      router.push(`/login?redirect=/pricing`);
+      return;
+    }
+
+    setProcessingPlan(planId);
+
+    await initiateCheckout({
+      planId,
+      onSuccess: async (data) => {
+        setProcessingPlan(null);
+        setFeedbackMsg({
+          type: "success",
+          text: "Payment verified successfully! Redirecting to your dashboard...",
+        });
+        await refreshUser();
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1200);
+      },
+      onError: (errorMsg) => {
+        setProcessingPlan(null);
+        setFeedbackMsg({ type: "error", text: errorMsg });
+      },
+      onCancel: () => {
+        setProcessingPlan(null);
+      },
+    });
+  };
 
   return (
     <div className="space-y-12">
@@ -25,6 +66,18 @@ export const PricingSection: React.FC = () => {
         <p className="text-base sm:text-lg text-[var(--color-text-secondary)]">
           Less than the cost of a single 30-minute consultation. Results you will use and rely on every single day.
         </p>
+
+        {feedbackMsg && (
+          <div
+            className={`p-4 rounded-2xl max-w-md mx-auto text-sm font-medium ${
+              feedbackMsg.type === "success"
+                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+            }`}
+          >
+            {feedbackMsg.text}
+          </div>
+        )}
 
         {/* Currency Switcher */}
         <div className="pt-2 flex justify-center">
@@ -60,6 +113,13 @@ export const PricingSection: React.FC = () => {
         {PRICING_PLANS.map((plan) => {
           const price = currency === "inr" ? plan.priceInr : plan.priceUsd;
           const altPrice = currency === "inr" ? `or ${plan.priceUsd}` : `or ${plan.priceInr}`;
+
+          const isCurrentPlan = user?.plan === plan.id;
+          const isHigherTier =
+            user?.plan === "pro" ||
+            user?.plan === "membership" ||
+            (user?.plan === "starter" && plan.id === "starter");
+          const isProcessing = processingPlan === plan.id;
 
           if (plan.popular) {
             return (
@@ -111,16 +171,36 @@ export const PricingSection: React.FC = () => {
                 </div>
 
                 <div>
-                  <Button
-                    variant="accent"
-                    size="lg"
-                    fullWidth
-                    onClick={() => {
-                      alert(`Checkout for ${plan.name} (${price}). In production this initiates secure Stripe/Razorpay checkout.`);
-                    }}
-                  >
-                    {plan.ctaText}
-                  </Button>
+                  {isCurrentPlan ? (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      fullWidth
+                      disabled
+                      className="border-emerald-400/40 text-emerald-300 bg-emerald-950/40 opacity-90 cursor-default"
+                    >
+                      <Check className="w-4 h-4 mr-2 text-emerald-400" />
+                      Active Plan
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="accent"
+                      size="lg"
+                      fullWidth
+                      disabled={isProcessing}
+                      onClick={() => handleBuyPlan(plan.id as any)}
+                      className="cursor-pointer"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Processing...
+                        </>
+                      ) : (
+                        plan.ctaText
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
             );
@@ -172,28 +252,40 @@ export const PricingSection: React.FC = () => {
               </div>
 
               <div>
-                <Button
-                  variant="outline"
-                  size="md"
-                  fullWidth
-                  onClick={() => {
-                    alert(`Checkout for ${plan.name} (${price}). In production this initiates secure Stripe/Razorpay checkout.`);
-                  }}
-                >
-                  {plan.ctaText}
-                </Button>
+                {isCurrentPlan ? (
+                  <Button
+                    variant="outline"
+                    size="md"
+                    fullWidth
+                    disabled
+                    className="border-emerald-600/30 text-emerald-800 bg-emerald-50 cursor-default"
+                  >
+                    <Check className="w-4 h-4 mr-2 text-emerald-600" />
+                    Active Plan
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="md"
+                    fullWidth
+                    disabled={isProcessing}
+                    onClick={() => handleBuyPlan(plan.id as any)}
+                    className="cursor-pointer"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      plan.ctaText
+                    )}
+                  </Button>
+                )}
               </div>
             </Card>
           );
         })}
-      </div>
-
-      {/* Trust & Guarantee Banner */}
-      <div className="text-center pt-2">
-        <div className="inline-flex items-center gap-2 text-xs sm:text-sm text-[var(--color-text-secondary)] font-medium">
-          <ShieldCheck className="w-4 h-4 text-[var(--color-accent)]" />
-          <span>7-Day 100% Money-Back Guarantee · Instant File Delivery · Works on Free ChatGPT</span>
-        </div>
       </div>
     </div>
   );

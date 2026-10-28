@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { AppShell } from "@/components/layout/AppShell";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Rootwell – The wellness prompt library",
@@ -56,9 +56,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen flex flex-col antialiased bg-[var(--color-background)] text-[var(--color-text-primary)] selection:bg-[var(--color-accent)] selection:text-[var(--color-primary)]">
         <SmoothScrollProvider>
-          <Navbar />
-          <main className="flex-1 flex flex-col">{children}</main>
-          <Footer />
+          <AuthProvider>
+            <AppShell>{children}</AppShell>
+          </AuthProvider>
         </SmoothScrollProvider>
       </body>
     </html>

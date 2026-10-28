@@ -38,7 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
     primary:
       "bg-[var(--color-primary)] text-[var(--color-text-inverse)] hover:bg-[var(--color-primary-hover)] shadow-sm hover:shadow-md",
     accent:
-      "bg-[var(--color-accent)] text-[var(--color-primary)] font-semibold hover:bg-[var(--color-accent-hover)] shadow-sm hover:shadow-md hover:-translate-y-0.5",
+      "bg-[var(--color-accent)] text-white font-semibold hover:bg-[var(--color-accent-hover)] shadow-sm hover:shadow-md hover:-translate-y-0.5",
     secondary:
       "bg-[var(--color-secondary)] text-[var(--color-text-primary)] hover:brightness-95 border border-[var(--color-border-sage)]",
     outline:
@@ -61,17 +61,17 @@ export const Button: React.FC<ButtonProps> = ({
           rel="noopener noreferrer"
           className={combinedClasses}
         >
-          {leftIcon && <span className="shrink-0">{leftIcon}</span>}
-          <span>{children}</span>
-          {rightIcon && <span className="shrink-0">{rightIcon}</span>}
+          {leftIcon && <span className="shrink-0 inline-flex items-center">{leftIcon}</span>}
+          <span className="inline-flex items-center justify-center gap-1.5">{children}</span>
+          {rightIcon && <span className="shrink-0 inline-flex items-center">{rightIcon}</span>}
         </a>
       );
     }
     return (
       <Link href={href} className={combinedClasses}>
-        {leftIcon && <span className="shrink-0">{leftIcon}</span>}
-        <span>{children}</span>
-        {rightIcon && <span className="shrink-0">{rightIcon}</span>}
+        {leftIcon && <span className="shrink-0 inline-flex items-center">{leftIcon}</span>}
+        <span className="inline-flex items-center justify-center gap-1.5">{children}</span>
+        {rightIcon && <span className="shrink-0 inline-flex items-center">{rightIcon}</span>}
       </Link>
     );
   }
@@ -82,9 +82,9 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       {...rest}
     >
-      {leftIcon && <span className="shrink-0">{leftIcon}</span>}
-      <span>{children}</span>
-      {rightIcon && <span className="shrink-0">{rightIcon}</span>}
+      {leftIcon && <span className="shrink-0 inline-flex items-center">{leftIcon}</span>}
+      <span className="inline-flex items-center justify-center gap-1.5">{children}</span>
+      {rightIcon && <span className="shrink-0 inline-flex items-center">{rightIcon}</span>}
     </button>
   );
 };

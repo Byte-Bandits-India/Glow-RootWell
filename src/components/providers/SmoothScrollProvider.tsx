@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 
@@ -9,7 +10,13 @@ interface SmoothScrollProviderProps {
 }
 
 export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ children }) => {
+  const pathname = usePathname();
+  const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/signup");
+
   useEffect(() => {
+    // Disable Lenis on authentication pages to guarantee native scrolling
+    if (isAuthPage) return;
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),

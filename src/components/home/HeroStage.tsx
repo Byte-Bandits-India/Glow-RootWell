@@ -201,11 +201,11 @@ export const HeroStage: React.FC = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {(
                 [
-                  { key: "skin", grad: "from-[#F7DDD5] to-[#F1C2B4]" },
-                  { key: "gut", grad: "from-[#D5EAC3] to-[#B5D99B]" },
-                  { key: "nutrition", grad: "from-[#FBE9BA] to-[#F3D78E]" },
-                  { key: "fitness", grad: "from-[#C4EADF] to-[#9CD9C8]" },
-                ] as const
+                  { key: "fat_loss" as const, grad: "from-[#F7DDD5] to-[#F1C2B4]" },
+                  { key: "sales" as const, grad: "from-[#FBE9BA] to-[#F3D78E]" },
+                  { key: "content" as const, grad: "from-[#D8E1F8] to-[#B8CCF5]" },
+                  { key: "delivery" as const, grad: "from-[#D5EAC3] to-[#B5D99B]" },
+                ]
               ).map(({ key, grad }) => {
                 const cat = CATEGORIES[key];
                 return (

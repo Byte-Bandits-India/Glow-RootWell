@@ -85,6 +85,8 @@ html {
   scroll-padding-top: 5rem;
   background-color: var(--color-background);
   color: var(--color-text-primary);
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 body {
@@ -94,6 +96,15 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 h1 {
@@ -183,4 +194,55 @@ h3 {
 
 .animate-text-appear {
   animation: textAppear 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Radix Accordion Keyframes & Guaranteed Smooth Transitions */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+[data-radix-accordion-content][data-state="open"],
+[data-state="open"] > [data-radix-accordion-content],
+.animate-accordion-down {
+  animation: accordion-down 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-radix-accordion-content][data-state="closed"],
+[data-state="closed"] > [data-radix-accordion-content],
+.animate-accordion-up {
+  animation: accordion-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Hide scrollbars across all browsers and elements while preserving full scrollability */
+.no-scrollbar,
+.sidebar-scroll,
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar,
+.sidebar-scroll::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

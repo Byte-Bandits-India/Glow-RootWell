@@ -77,23 +77,28 @@ export const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-2.5 text-sm text-white/80">
               <li>
-                <Link href="/#how" className="hover:text-[var(--color-accent)] transition-colors">
+                <Link href="/how-it-works" className="hover:text-[var(--color-accent)] transition-colors">
                   How It Works
                 </Link>
               </li>
               <li>
-                <Link href="/#pricing" className="hover:text-[var(--color-accent)] transition-colors">
+                <Link href="/pricing" className="hover:text-[var(--color-accent)] transition-colors">
                   Pricing & Bundles
                 </Link>
               </li>
               <li>
-                <Link href="/#coaches" className="hover:text-[var(--color-accent)] transition-colors">
-                  For Wellness Coaches
+                <Link href="/library" className="hover:text-[var(--color-accent)] transition-colors">
+                  Prompt Library
                 </Link>
               </li>
               <li>
-                <Link href="/#faq" className="hover:text-[var(--color-accent)] transition-colors">
+                <Link href="/faq" className="hover:text-[var(--color-accent)] transition-colors">
                   Frequently Asked Questions
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-[var(--color-accent)] transition-colors">
+                  Contact Us
                 </Link>
               </li>
             </ul>
