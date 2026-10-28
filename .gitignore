@@ -50,3 +50,9 @@ next-env.d.ts
 *.csv
 *.key
 
+# cloudflare & open-next
+/.open-next/
+/.wrangler/
+.dev.vars
+
+
