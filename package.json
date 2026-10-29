@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed-prompts": "npx tsx scripts/seed-prompts.ts",
-    "db:verify-prompts": "npx tsx scripts/verify-parity.ts"
+    "db:verify-prompts": "npx tsx scripts/verify-parity.ts",
+    "d1:seed": "npx tsx scripts/export-d1-prompts.ts && npx wrangler d1 execute avyaya-db --remote --file=d1/prompts.sql -y"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

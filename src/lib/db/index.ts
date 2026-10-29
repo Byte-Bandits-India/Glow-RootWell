@@ -1,36 +1,100 @@
+import { drizzle as drizzleD1 } from "drizzle-orm/d1";
+import { drizzle as drizzleLibsql } from "drizzle-orm/libsql";
 import { createClient, type Client } from "@libsql/client";
-import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
-let _client: Client | null = null;
-let _db: LibSQLDatabase<typeof schema> | null = null;
+function getCloudflareEnv(): any {
+  try {
+    const symbol = Symbol.for("__cloudflare-context__");
+    const ctx = (globalThis as any)[symbol];
+    if (ctx?.env?.DB) {
+      return ctx.env;
+    }
+  } catch {}
+  return null;
+}
 
-function getClientInstance(): Client {
-  if (!_client) {
+let _cachedD1Db: any = null;
+let _cachedLibsqlDb: any = null;
+let _cachedLibsqlClient: Client | null = null;
+
+export function getDb(): any {
+  const env = getCloudflareEnv();
+  if (env?.DB) {
+    if (!_cachedD1Db) {
+      _cachedD1Db = drizzleD1(env.DB, { schema });
+    }
+    return _cachedD1Db;
+  }
+
+  if (!_cachedLibsqlDb) {
+    if (!_cachedLibsqlClient) {
+      const dbUrl = process.env.DATABASE_URL || "file:rootwell.db";
+      _cachedLibsqlClient = createClient({
+        url: dbUrl,
+        authToken: process.env.DATABASE_AUTH_TOKEN,
+      });
+    }
+    _cachedLibsqlDb = drizzleLibsql(_cachedLibsqlClient, { schema });
+  }
+  return _cachedLibsqlDb;
+}
+
+export function getClient(): any {
+  const env = getCloudflareEnv();
+  if (env?.DB) {
+    return {
+      execute: async (statement: string | { sql: string; args?: any[] }) => {
+        const sql = typeof statement === "string" ? statement : statement.sql;
+        const args = typeof statement === "string" ? [] : (statement.args || []);
+        const stmt = args.length > 0 ? env.DB.prepare(sql).bind(...args) : env.DB.prepare(sql);
+        const res = await stmt.all();
+        return {
+          rows: res.results || [],
+          columns: [],
+          rowsAffected: res.meta?.changes || 0,
+          lastInsertRowid: res.meta?.last_row_id ? BigInt(res.meta.last_row_id) : undefined,
+        };
+      },
+      batch: async (statements: any[]) => {
+        const d1Statements = statements.map((st) => {
+          const sql = typeof st === "string" ? st : st.sql;
+          const args = typeof st === "string" ? [] : (st.args || []);
+          return args.length > 0 ? env.DB.prepare(sql).bind(...args) : env.DB.prepare(sql);
+        });
+        const results = await env.DB.batch(d1Statements);
+        return results.map((r: any) => ({
+          rows: r.results || [],
+          columns: [],
+          rowsAffected: r.meta?.changes || 0,
+        }));
+      },
+    };
+  }
+
+  if (!_cachedLibsqlClient) {
     const dbUrl = process.env.DATABASE_URL || "file:rootwell.db";
-    _client = createClient({
+    _cachedLibsqlClient = createClient({
       url: dbUrl,
       authToken: process.env.DATABASE_AUTH_TOKEN,
     });
   }
-  return _client;
+  return _cachedLibsqlClient;
 }
 
-export const client = new Proxy({} as Client, {
+export const db: ReturnType<typeof drizzleLibsql<typeof schema>> = new Proxy({} as any, {
   get(_target, prop, receiver) {
-    const instance = getClientInstance();
+    const instance = getDb();
     const value = Reflect.get(instance, prop, receiver);
     return typeof value === "function" ? value.bind(instance) : value;
   },
 });
 
-export const db = new Proxy({} as LibSQLDatabase<typeof schema>, {
+export const client: Client = new Proxy({} as any, {
   get(_target, prop, receiver) {
-    if (!_db) {
-      _db = drizzle(getClientInstance(), { schema });
-    }
-    const value = Reflect.get(_db, prop, receiver);
-    return typeof value === "function" ? value.bind(_db) : value;
+    const instance = getClient();
+    const value = Reflect.get(instance, prop, receiver);
+    return typeof value === "function" ? value.bind(instance) : value;
   },
 });
 
