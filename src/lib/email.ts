@@ -1,8 +1,15 @@
 /**
  * Email Service for Avyaya
  * Handles notifications and confirmation emails for contact form inquiries,
- * purchases, and system events. Works seamlessly on both Node.js (via Nodemailer)
- * and Cloudflare Workers Edge (via native cloudflare:sockets / WorkerMailer).
+ * purchases, and system events.
+ *
+ * In Production on Cloudflare Workers:
+ * Uses Google Apps Script Web App Relay (GMAIL_WEBHOOK_URL) via standard HTTPS fetch.
+ * Dispatches directly through your personal/work Gmail (abrahambillclinton@gmail.com)
+ * without third-party email providers or domain verification.
+ *
+ * In Local Development:
+ * Uses Nodemailer SMTP or dev-mode console logging.
  */
 
 import nodemailer from "nodemailer";
@@ -19,13 +26,13 @@ export interface ContactPayload {
 export interface EmailDispatchResult {
   adminSuccess: boolean;
   userSuccess: boolean;
-  provider: "smtp" | "dev_mode";
+  provider: "google_apps_script" | "smtp" | "dev_mode";
   adminError?: string;
   userError?: string;
 }
 
-const DEFAULT_ADMIN_EMAIL = "support@avyaya.com";
-const DEFAULT_FROM_EMAIL = '"Avyaya Support" <support@avyaya.com>';
+const DEFAULT_ADMIN_EMAIL = "abrahambillclinton@gmail.com";
+const DEFAULT_FROM_EMAIL = '"Avyaya Support" <abrahambillclinton@gmail.com>';
 
 let cachedTransporter: Transporter | null = null;
 
@@ -42,18 +49,6 @@ function getEnv(key: string): string | undefined {
     }
   } catch {}
   return process.env[key];
-}
-
-/**
- * Detects whether the current runtime is Cloudflare Workers
- */
-function isCloudflareEdge(): boolean {
-  try {
-    const symbol = Symbol.for("__cloudflare-context__");
-    if ((globalThis as any)[symbol]) return true;
-    if (typeof (globalThis as any).WebSocketPair !== "undefined") return true;
-  } catch {}
-  return false;
 }
 
 /**
@@ -349,95 +344,47 @@ export function generateUserConfirmationEmailHtml(data: ContactPayload): string 
 }
 
 /**
- * Sends emails using Cloudflare Workers edge native TCP sockets (WorkerMailer).
- * Connects directly to SMTP server without relying on Node.js net proxy.
+ * Dispatches an email via Google Apps Script Web App over HTTPS.
+ * This runs via standard global fetch(), which works 100% natively on Cloudflare Workers.
  */
-async function sendViaCloudflareEdgeSocket(
-  host: string,
-  user: string,
-  pass: string,
-  data: ContactPayload,
-  adminEmail: string,
-  adminSubject: string,
-  adminHtml: string,
-  userSubject: string,
-  userHtml: string
-): Promise<{ adminSuccess: boolean; userSuccess: boolean; adminError?: string; userError?: string }> {
-  const { WorkerMailer } = await import("worker-mailer");
+async function sendViaGoogleAppsScript(
+  url: string,
+  payload: { to: string; subject: string; html: string; replyTo?: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  // Attempt port 587 (STARTTLS) first, then port 465 (Direct SSL)
-  const configs = [
-    { port: 587, secure: false, startTls: true },
-    { port: 465, secure: true, startTls: false },
-  ];
-
-  let lastError: any = null;
-
-  for (const cfg of configs) {
-    try {
-      const mailer = await WorkerMailer.connect({
-        host,
-        port: cfg.port,
-        secure: cfg.secure,
-        startTls: cfg.startTls,
-        authType: ["plain", "login"],
-        credentials: {
-          username: user,
-          password: pass,
-        },
-        socketTimeoutMs: 15000,
-        responseTimeoutMs: 15000,
-      });
-
-      // 1. Send Admin Email
-      await mailer.send({
-        from: { name: "Avyaya Support", email: user },
-        to: adminEmail,
-        reply: { name: data.name, email: data.email },
-        subject: adminSubject,
-        html: adminHtml,
-      });
-
-      // 2. Send User Confirmation Email
-      await mailer.send({
-        from: { name: "Avyaya Support", email: user },
-        to: { name: data.name, email: data.email },
-        reply: { name: "Avyaya Support", email: adminEmail },
-        subject: userSubject,
-        html: userHtml,
-      });
-
-      await mailer.close().catch(() => {});
-
-      return {
-        adminSuccess: true,
-        userSuccess: true,
-      };
-    } catch (err: any) {
-      lastError = err;
-      console.warn(`[WorkerMailer attempt on port ${cfg.port} failed]:`, err?.message || err);
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "");
+      return { success: false, error: `Google Apps Script HTTP ${response.status}: ${errText}` };
     }
-  }
 
-  return {
-    adminSuccess: false,
-    userSuccess: false,
-    adminError: lastError?.message || String(lastError),
-    userError: lastError?.message || String(lastError),
-  };
+    const json = await response.json().catch(() => null);
+    if (json && json.success === false) {
+      return { success: false, error: json.error || "Google Apps Script rejected delivery" };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || String(err) };
+  }
 }
 
 /**
  * Main email dispatcher function for contact submissions.
- * Automatically chooses edge-native socket delivery on Cloudflare Workers,
- * and standard Nodemailer on Node.js.
+ * Checks for Google Apps Script Web App URL first (for Cloudflare Workers),
+ * and falls back to Nodemailer SMTP or dev mode.
  */
 export async function sendContactEmails(data: ContactPayload): Promise<EmailDispatchResult> {
   const adminEmail = getEnv("ADMIN_EMAIL") || DEFAULT_ADMIN_EMAIL;
   const user = getEnv("SMTP_USER") || "";
-  const rawPass = getEnv("SMTP_PASS") || getEnv("SMTP_PASSWORD") || "";
-  const pass = rawPass.replace(/\s+/g, "");
-  const host = getEnv("SMTP_HOST") || (getEnv("SMTP_SERVICE") === "gmail" ? "smtp.gmail.com" : "localhost");
   const fromEmail =
     getEnv("SMTP_FROM") ||
     getEnv("EMAIL_FROM") ||
@@ -454,39 +401,43 @@ export async function sendContactEmails(data: ContactPayload): Promise<EmailDisp
   const adminSubject = `[Avyaya Contact] New Inquiry from ${data.name} - ${data.category}`;
   const userSubject = `We've received your message - Avyaya`;
 
-  // 1. If in Cloudflare Workers Edge runtime, use native edge sockets
-  if (isCloudflareEdge() && user && pass) {
-    console.log("[Avyaya Email] Dispatching via Cloudflare Edge Sockets (WorkerMailer)...");
-    const edgeResult = await sendViaCloudflareEdgeSocket(
-      host,
-      user,
-      pass,
-      data,
-      adminEmail,
-      adminSubject,
-      adminHtml,
-      userSubject,
-      userHtml
-    );
+  // 1. Primary Path: Google Apps Script Webhook Relay (100% Edge Compatible on Cloudflare)
+  const webhookUrl = getEnv("GMAIL_WEBHOOK_URL") || getEnv("GOOGLE_APPS_SCRIPT_URL");
+  if (webhookUrl) {
+    console.log("[Avyaya Email] Dispatching via Google Apps Script Web App Relay...");
 
-    if (edgeResult.adminSuccess && edgeResult.userSuccess) {
-      return {
-        adminSuccess: true,
-        userSuccess: true,
-        provider: "smtp",
-      };
-    }
+    // Send Admin Notification Email
+    const adminRes = await sendViaGoogleAppsScript(webhookUrl, {
+      to: adminEmail,
+      subject: adminSubject,
+      html: adminHtml,
+      replyTo: data.email,
+    });
 
-    console.warn("[Avyaya Email] Edge socket delivery failed, attempting Nodemailer fallback...", edgeResult.adminError);
+    // Send User Confirmation Email
+    const userRes = await sendViaGoogleAppsScript(webhookUrl, {
+      to: data.email,
+      subject: userSubject,
+      html: userHtml,
+      replyTo: adminEmail,
+    });
+
+    return {
+      adminSuccess: adminRes.success,
+      userSuccess: userRes.success,
+      adminError: adminRes.error,
+      userError: userRes.error,
+      provider: "google_apps_script",
+    };
   }
 
-  // 2. Node.js runtime or secondary fallback via Nodemailer
+  // 2. Node.js local development fallback via Nodemailer
   const transporter = getTransporter();
 
   // If no SMTP configuration is present at all, log and return dev mode
   if (!transporter) {
     console.log("==========================================================");
-    console.log("[Avyaya Email Dev Mode] SMTP credentials not configured.");
+    console.log("[Avyaya Email Dev Mode] GMAIL_WEBHOOK_URL or SMTP credentials not configured.");
     console.log(`[Email 1 -> Admin]: To ${adminEmail} | From: ${fromEmail} | Reply-To: ${data.name} <${data.email}>`);
     console.log(`Subject: ${adminSubject}`);
     console.log(`[Email 2 -> User]: To ${data.name} <${data.email}> | From: ${fromEmail}`);
