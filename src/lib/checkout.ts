@@ -1,5 +1,7 @@
 "use client";
 
+import { RAZORPAY_FLOWER_LOGO } from "./razorpayLogo";
+
 declare global {
   interface Window {
     Razorpay?: any;
@@ -75,14 +77,14 @@ export async function initiateCheckout(options: CheckoutOptions) {
       throw new Error("Unable to load Razorpay Checkout. Please check your internet connection.");
     }
 
-    // 3. Open official Razorpay Checkout Modal
+    // 3. Open official Razorpay Checkout Modal with brand flower logo
     const rzpOptions = {
       key: keyId,
       amount,
       currency,
-      name: "Avyaya Clinical AI",
-      description: `${planName} Lifetime Access`,
-      image: "/Avyaya_Logo.png",
+      name: "Avyaya",
+      description: `${planName} Access`,
+      image: RAZORPAY_FLOWER_LOGO,
       order_id: orderId,
       prefill: {
         name: user?.name || "",

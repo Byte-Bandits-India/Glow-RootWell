@@ -54,10 +54,6 @@ export const PricingSection: React.FC = () => {
     <div className="space-y-12">
       {/* Header & Currency Switcher */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[var(--color-secondary)] text-[var(--color-primary)] text-xs font-semibold uppercase tracking-wider">
-          <Zap className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-          Early-Access Launch Pricing
-        </span>
 
         <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-normal text-[var(--color-text-primary)]">
           Invest in your transformation

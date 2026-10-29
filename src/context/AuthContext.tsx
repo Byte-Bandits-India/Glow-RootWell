@@ -20,6 +20,7 @@ interface AuthContextType {
   loading: boolean;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   refreshUser: async () => {},
   logout: async () => {},
+  deleteAccount: async () => false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -65,8 +67,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteAccount = async (): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/auth/delete-account", { method: "POST" });
+      if (res.ok) {
+        setUser(null);
+        router.push("/");
+        router.refresh();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Delete account failed:", err);
+      return false;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, refreshUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

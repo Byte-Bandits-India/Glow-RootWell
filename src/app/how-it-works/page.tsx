@@ -6,8 +6,6 @@ import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { TakeControlSection } from "@/components/home/TakeControlSection";
-import { ShowcaseCarousel } from "@/components/home/ShowcaseCarousel";
-import { TRUST_MODELS } from "@/data/siteData";
 import {
   CheckCircle2,
   Sparkles,
@@ -17,11 +15,12 @@ import {
   Clock,
 } from "lucide-react";
 import {
-  Accordion,  
+  Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+import { SolutionsVenn } from "@/components/home/SolutionsVenn";
 
 interface ComparisonScenario {
   id: "gut" | "skin" | "nutrition";
@@ -163,12 +162,8 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
         </Container>
       </div>
 
-      {/* 5. Clinical Quality Carousel */} 
-      <Section variant="ivory" padding="default">
-        <Container>
-          <ShowcaseCarousel />
-        </Container>
-      </Section>
+      {/* 5. Clinical Quality Carousel */}
+      <SolutionsVenn />
 
       {/* 2. The Core 3-Step Process (TakeControlSection) */}
       <TakeControlSection />
@@ -200,8 +195,8 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
                   type="button"
                   onClick={() => setActiveScenarioId(scenario.id)}
                   className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${isActive
-                      ? "bg-[var(--color-primary)] text-white shadow-xs"
-                      : "bg-white text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)] hover:bg-[var(--color-background)]"
+                    ? "bg-[var(--color-primary)] text-white shadow-xs"
+                    : "bg-white text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)] hover:bg-[var(--color-background)]"
                     }`}
                 >
                   {scenario.label}

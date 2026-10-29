@@ -22,6 +22,8 @@ import {
   Check,
   CreditCard,
   FileCheck,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 
 interface OrderItem {
@@ -35,12 +37,14 @@ interface OrderItem {
 }
 
 export default function DashboardPage() {
-  const { user, loading, refreshUser, logout } = useAuth();
+  const { user, loading, refreshUser, logout, deleteAccount } = useAuth();
   const router = useRouter();
 
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -63,6 +67,12 @@ export default function DashboardPage() {
       .finally(() => setOrdersLoading(false));
   }, [user]);
 
+  // Filter out any non-paid orders client-side and limit to the last 6 history records
+  const completedOrders = useMemo(
+    () => orders.filter((ord) => ord.status === "paid").slice(0, 6),
+    [orders]
+  );
+
   const handleUpgrade = async (planId: "starter" | "pro" | "membership") => {
     setUpgrading(planId);
     await initiateCheckout({
@@ -84,6 +94,20 @@ export default function DashboardPage() {
         setUpgrading(null);
       },
     });
+  };
+
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    try {
+      const success = await deleteAccount();
+      if (!success) {
+        alert("Failed to delete account. Please try again or contact support.");
+        setDeleting(false);
+      }
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      setDeleting(false);
+    }
   };
 
   if (loading || !user) {
@@ -113,48 +137,39 @@ export default function DashboardPage() {
         ? "Active • Lifetime Access"
         : "Free Starter Tier";
 
-  // Filter out any non-paid orders client-side and limit to the last 6 history records
-  const completedOrders = useMemo(
-    () => orders.filter((ord) => ord.status === "paid").slice(0, 6),
-    [orders]
-  );
-
   return (
-    <div className="min-h-screen bg-[var(--color-background)] py-8 sm:py-12">
+    <div className="min-h-screen bg-[var(--color-background)] py-6 sm:py-12">
       <Container>
-        <div className="max-w-5xl mx-auto space-y-7">
+        <div className="max-w-5xl mx-auto space-y-5 sm:space-y-7">
           {/* 1. Header Profile Banner */}
-          <div className="bg-[#0B2C13] text-white rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl relative overflow-hidden border border-white/10">
-            {/* Ambient background glows */}
-            <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-10 -left-10 w-64 h-64 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-              <div className="flex items-center gap-4 sm:gap-5">
+          <div className="bg-gradient-to-r from-[#07240E] via-[#0B2C13] to-[#0D3817] text-white rounded-2xl sm:rounded-[22px] p-4 sm:p-5 lg:p-6 shadow-md relative overflow-hidden border border-white/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+              {/* User Identity Section */}
+              <div className="flex items-center gap-3 sm:gap-4.5 min-w-0">
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
                     alt={user.name}
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-emerald-400/40 shadow-lg shrink-0"
+                    className="w-12 h-12 sm:w-15 sm:h-15 rounded-full object-cover border border-emerald-400/30 shadow-xs shrink-0"
                   />
                 ) : (
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-[#1E7A46] text-[#0B2C13] flex items-center justify-center font-bold text-2xl uppercase shrink-0 shadow-lg">
-                    {user.name.charAt(0)}
+                  <div className="w-12 h-12 sm:w-15 sm:h-15 rounded-full bg-white text-black flex items-center justify-center font-serif text-xl sm:text-3xl font-semibold shrink-0 shadow-xs select-none">
+                    {user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div>
-                  <h1 className="font-heading text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+                <div className="min-w-0 flex-1">
+                  <h1 className="font-heading text-base sm:text-xl lg:text-2xl font-bold text-white tracking-tight leading-snug truncate">
                     {user.name}
                   </h1>
-                  <p className="text-xs sm:text-sm text-gray-300/80 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-300/80 font-normal truncate mt-0.5">
                     {user.email}
                   </p>
                 </div>
               </div>
 
-              {/* Right Side: Plan Badge at Top Right (No icon) and Action Buttons */}
-              <div className="flex flex-col items-start sm:items-end gap-3.5 w-full sm:w-auto">
-                <span className="absolute top-6 right-6 sm:static sm:self-end px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+              {/* Mobile Actions & Status Bar (< sm) */}
+              <div className="flex sm:hidden items-center justify-between pt-3 border-t border-white/10 gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#0F4722] text-[#22C55E] border border-[#22C55E]/30 shadow-xs">
                   {activePlanId === "membership"
                     ? "PRO MEMBER"
                     : activePlanId === "pro"
@@ -164,59 +179,36 @@ export default function DashboardPage() {
                         : "FREE TIER"}
                 </span>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Button
-                    href="/library"
-                    variant="accent"
-                    size="md"
-                    className="bg-emerald-400 hover:bg-emerald-300 text-[#0B2C13] font-semibold flex-1 sm:flex-none justify-center shadow-md transition-all"
-                  >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Open Prompt Library
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => logout()}
-                    className="px-3.5 py-2.5 rounded-xl border border-white/20 text-white/80 hover:text-white hover:bg-white/10 transition-colors text-xs font-medium cursor-pointer inline-flex items-center gap-1.5"
-                    title="Sign Out"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span className="hidden sm:inline">Sign Out</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="px-2.5 py-1 rounded-xl border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-[11px] font-medium cursor-pointer transition-all inline-flex items-center gap-1.5 active:scale-95 shadow-xs"
+                >
+                  <LogOut className="w-3 h-3 text-red-300" />
+                  <span>Delete Account</span>
+                </button>
               </div>
-            </div>
 
-            {/* Quick Metrics Bar */}
-            <div className="mt-7 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-              <div>
-                <span className="text-gray-400 block text-[11px] uppercase tracking-wider font-medium">
-                  Plan Type
+              {/* Desktop Actions & Status Bar (sm+) */}
+              <div className="hidden sm:flex flex-col items-end gap-2 sm:gap-2.5 shrink-0">
+                <span className="px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#0F4722] text-[#22C55E] border border-[#22C55E]/30 shadow-xs">
+                  {activePlanId === "membership"
+                    ? "PRO MEMBER"
+                    : activePlanId === "pro"
+                      ? "PRO VAULT"
+                      : activePlanId === "starter"
+                        ? "STARTER"
+                        : "FREE TIER"}
                 </span>
-                <span className="text-white font-semibold text-sm mt-0.5 block">
-                  {planDetails ? planDetails.name : "Free Starter Tier"}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-400 block text-[11px] uppercase tracking-wider font-medium">
-                  Vault Coverage
-                </span>
-                <span className="text-white font-semibold text-sm mt-0.5 block">
-                  {activePlanId === "pro" || activePlanId === "membership"
-                    ? "500+ Clinical Prompts"
-                    : activePlanId === "starter"
-                      ? "25 Starter Prompts"
-                      : "4 Free Sample Prompts"}
-                </span>
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <span className="text-gray-400 block text-[11px] uppercase tracking-wider font-medium">
-                  Access Status
-                </span>
-                <span className="text-emerald-300 font-semibold text-sm mt-0.5 inline-flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  {activePlanId !== "free" ? "Verified Active" : "Active Free"}
-                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="px-3 py-1.5 rounded-xl border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white/90 text-xs font-medium cursor-pointer transition-all inline-flex items-center gap-1.5 active:scale-95 shadow-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Delete Account</span>
+                </button>
               </div>
             </div>
           </div>
@@ -224,7 +216,7 @@ export default function DashboardPage() {
           {/* 2. Membership Details & Quick Navigation Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Active Membership Details Card */}
-            <div className="md:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-sm space-y-6">
+            <div className="md:col-span-2 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-200/80 shadow-sm space-y-6">
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
                   <span className="text-xs font-bold uppercase tracking-wider text-[#1E7A46]">
@@ -309,7 +301,7 @@ export default function DashboardPage() {
                     size="sm"
                     disabled={upgrading !== null}
                     onClick={() => handleUpgrade("pro")}
-                    className="shrink-0 cursor-pointer bg-[#0B2C13] text-white hover:bg-[#1E7A46] font-medium shadow-sm"
+                    className="shrink-0 cursor-pointer bg-[#0B2C13] text-white hover:bg-[#1E7A46] font-medium shadow-sm w-full sm:w-auto"
                   >
                     {upgrading === "pro" ? (
                       <>
@@ -325,7 +317,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick Launch Card */}
-            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gray-200/80 shadow-sm flex flex-col justify-between space-y-4">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-gray-200/80 shadow-sm flex flex-col justify-between space-y-4">
               <div>
                 <h3 className="font-heading text-xl font-semibold text-[#0B2C13]">
                   Browse by Topic
@@ -380,7 +372,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 3. Orders & Billing History Table (Paid receipts only, no payment IDs or created drafts) */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-sm space-y-6">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-gray-200/80 shadow-sm space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
                 <h3 className="font-heading text-xl font-semibold text-[#0B2C13] flex items-center gap-2">
@@ -487,6 +479,75 @@ export default function DashboardPage() {
           </div>
         </div>
       </Container>
+
+      {/* Delete Account Confirmation Modal Popup */}
+      {isDeleteModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => {
+            if (!deleting) setIsDeleteModalOpen(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-gray-100 relative text-left space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Warning Icon & Content */}
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100">
+                <AlertTriangle className="w-6 h-6 stroke-[2]" />
+              </div>
+              <div className="space-y-1.5 pr-4">
+                <h3 className="font-heading text-lg sm:text-xl font-bold text-gray-900 leading-snug">
+                  Delete Account?
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                  Are you sure you want to delete your account? This action cannot be undone. All your saved clinical progress and prompt access will be permanently removed.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium text-xs sm:text-sm transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleConfirmDelete}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-60"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Yes, Delete Account</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -28,20 +28,17 @@ export default function HomePage() {
       {/* 1. Hero Section (Matching Reference Top-Left) */}
       <HeroReference />
 
-      {/* Social Proof Bar (Next Section) */}
-      <SocialProofBar />
-
       {/* 2. Mission Statement Section (Matching Reference Top-Right) */}
       <MissionStatement />
+
+      {/* 5. How It Works Section */}
+      <TakeControlSection />
 
       {/* 3. Solutions Venn Diagram Section (Matching Reference Middle-Left) */}
       <SolutionsVenn />
 
       {/* 4. Observed Stats & Stories Section (Matching Reference Middle-Right) */}
       <ObservedStories />
-
-      {/* 5. How It Works Section */}
-      <TakeControlSection />
 
       {/* Verified Clinical Testimonials Section */}
       <TestimonialsSection />

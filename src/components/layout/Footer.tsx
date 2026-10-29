@@ -24,7 +24,7 @@ export const Footer: React.FC = () => {
           setCategories(data.categories);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   return (
@@ -201,7 +201,7 @@ export const Footer: React.FC = () => {
         {/* Disclaimer & Copyright */}
         <div className="pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 text-xs text-[var(--color-secondary)]/80">
           <p className="max-w-3xl leading-relaxed">
-            Avyaya prompts are for general wellness and lifestyle education only. They are not medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for specific medical concerns.
+            Avyaya prompts are for general wellness and lifestyle education only.
           </p>
           <div className="shrink-0 font-medium">
             <p>© 2026 Avyaya. All rights reserved.</p>

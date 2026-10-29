@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { Container } from "./Container";
 import { Button } from "../ui/Button";
 import { useAuth } from "@/context/AuthContext";
-import { Menu, X, ChevronDown, BookOpen, Sparkles, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, ChevronDown, Sparkles, LogOut, LayoutDashboard } from "lucide-react";
 
 export interface NavbarProps {
   variant?: "light" | "dark" | "transparent";
@@ -30,6 +30,14 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
   }
 
   const navLinks: NavLinkItem[] = [
+    { label: "Library", href: "/library" },
+    { label: "How it works", href: "/how-it-works" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "FAQ", href: "/faq" },
+  ];
+
+  const mobileNavLinks: NavLinkItem[] = [
+    ...(user ? [{ label: "Dashboard", href: "/dashboard" }] : []),
     { label: "Library", href: "/library" },
     { label: "How it works", href: "/how-it-works" },
     { label: "Pricing", href: "/pricing" },
@@ -80,7 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
       }`}
     >
       <Container>
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link
             href="/"
@@ -123,8 +131,8 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
             })}
           </nav>
 
-          {/* Action CTAs & Profile State */}
-          <div className="hidden sm:flex items-center gap-3">
+          {/* Desktop Action CTAs & Profile State */}
+          <div className="hidden md:flex items-center gap-3">
             <Button
               href="/contact"
               variant="outline"
@@ -203,14 +211,6 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
                         <span>My Dashboard & Plans</span>
                       </Link>
                       <Link
-                        href="/library"
-                        onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[#0B2C13] hover:bg-[#F0EFE7] transition-colors"
-                      >
-                        <BookOpen className="w-4 h-4 text-[#526454]" />
-                        <span>My Prompt Library</span>
-                      </Link>
-                      <Link
                         href="/pricing"
                         onClick={() => setProfileDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-[#0B2C13] hover:bg-[#F0EFE7] transition-colors"
@@ -247,15 +247,44 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
             )}
           </div>
 
-          {/* Mobile Menu Hamburger Button */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className={`md:hidden p-2 rounded-xl text-inherit hover:bg-black/5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]`}
-            aria-label="Open navigation menu"
-            aria-expanded={mobileMenuOpen}
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+          {/* Mobile / Tablet Header Controls (< md) */}
+          <div className="flex md:hidden items-center gap-2.5">
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="rounded-full ring-2 ring-white/20 hover:ring-white/40 active:scale-95 transition-all shrink-0 overflow-hidden"
+                aria-label="Go to My Dashboard"
+              >
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold text-xs uppercase">
+                    {user.name.charAt(0)}
+                  </div>
+                )}
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="text-xs font-semibold text-white/90 hover:text-white px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
+
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 -mr-1.5 rounded-xl text-inherit hover:bg-white/10 active:bg-white/15 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] transition-colors"
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </Container>
 
@@ -270,16 +299,16 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
 
       {/* Mobile Right-to-Left Slide-Over Drawer */}
       <div
-        className={`fixed top-0 bottom-0 right-0 w-[300px] sm:w-[340px] max-w-[85vw] bg-[#0B2C13] text-white z-50 shadow-2xl flex flex-col justify-between p-6 border-l border-white/10 transition-transform duration-300 ease-out md:hidden ${
+        className={`fixed top-0 bottom-0 right-0 w-[300px] sm:w-[350px] max-w-[88vw] bg-[#0B2C13] text-white z-50 shadow-2xl flex flex-col justify-between p-5 sm:p-6 border-l border-white/10 transition-transform duration-300 ease-out md:hidden overflow-y-auto ${
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
         role="dialog"
         aria-modal="true"
         aria-label="Navigation Menu"
       >
-        <div>
+        <div className="flex flex-col">
           {/* Drawer Header with Logo and Close Button */}
-          <div className="flex items-center justify-between pb-6 border-b border-white/10">
+          <div className="flex items-center justify-between pb-4 border-b border-white/10">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
@@ -295,50 +324,54 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
             </Link>
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-2 -mr-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               aria-label="Close navigation menu"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* User Profile Card in Mobile Drawer (if authenticated) */}
-          {user && (
-            <div className="mt-4 p-3.5 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-3">
+          {/* User Profile Card in Mobile Drawer (simple and clean) */}
+          {user ? (
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="mt-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 transition-all flex items-center gap-3 border border-white/10"
+            >
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
-                  className="w-10 h-10 rounded-full object-cover border border-[var(--color-accent)] shrink-0"
+                  className="w-10 h-10 rounded-full object-cover shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold text-sm uppercase shrink-0">
+                <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center font-bold text-sm uppercase shrink-0">
                   {user.name.charAt(0)}
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-white truncate">{user.name}</p>
-                <p className="text-xs text-white/70 truncate">{user.email}</p>
+                <p className="text-xs text-white/60 truncate">{user.email}</p>
               </div>
-            </div>
-          )}
+            </Link>
+          ) : null}
 
           {/* Drawer Navigation Links */}
-          <nav className="flex flex-col gap-1.5 pt-6">
-            {navLinks.map((link) => {
+          <nav className="flex flex-col gap-1 pt-6">
+            {mobileNavLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-xl text-base font-medium transition-colors flex items-center justify-between ${
+                  className={`px-3 py-2.5 rounded-lg text-base transition-colors ${
                     isActive
-                      ? "bg-[rgba(16,185,130,0.15)] text-[var(--color-accent)] font-semibold"
-                      : "text-white/85 hover:text-white hover:bg-white/5"
+                      ? "text-white font-semibold"
+                      : "text-white/75 hover:text-white"
                   }`}
                 >
-                  <span>{link.label}</span>
+                  {link.label}
                 </Link>
               );
             })}
@@ -346,52 +379,62 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
         </div>
 
         {/* Drawer Action Buttons at Bottom */}
-        <div className="pt-6 border-t border-white/10 flex flex-col gap-3">
-          <Button
-            href="/contact"
-            variant="outline"
-            size="md"
-            fullWidth
-            className="border-white/20 text-white hover:bg-white/10 justify-center"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Contact Us
-          </Button>
-
+        <div className="pt-4 border-t border-white/10 flex flex-col gap-2.5">
           {user ? (
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                logout();
-              }}
-              className="w-full py-2.5 px-4 rounded-xl border border-red-400/30 text-red-300 hover:bg-red-500/10 font-medium text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
+            <>
+              <Button
+                href="/contact"
+                variant="outline"
+                size="md"
+                fullWidth
+                className="border-white/20 text-white hover:bg-white/10 justify-center text-sm"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Contact Us
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                className="w-full py-2.5 px-4 rounded-xl border border-white/15 text-white/70 hover:text-white hover:bg-white/5 font-medium text-sm text-center transition-colors cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </>
           ) : (
             <>
               <Button
                 href="/pricing"
-                variant="accent"
+                variant="outline"
                 size="md"
                 fullWidth
-                className="bg-[var(--color-accent)] !text-white font-semibold justify-center"
+                className="bg-white text-[#0B2C13] border-white hover:bg-white/90 font-semibold justify-center text-sm"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Get Instant Access
               </Button>
-              <Button
-                href="/login"
-                variant="outline"
-                size="md"
-                fullWidth
-                className="border-white/20 text-white hover:bg-white/10 justify-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign In
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  href="/login"
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 text-white hover:bg-white/10 justify-center text-xs"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  href="/contact"
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 text-white/80 hover:text-white hover:bg-white/10 justify-center text-xs"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact Us
+                </Button>
+              </div>
             </>
           )}
         </div>
