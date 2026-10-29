@@ -91,6 +91,21 @@ export async function POST(req: Request) {
         .where(eq(contactMessages.id, messageId));
     } catch {}
 
+    const isSuccessful = emailResult.adminSuccess || emailResult.userSuccess || emailResult.provider === "dev_mode";
+
+    if (!isSuccessful) {
+      const errorDetail = emailResult.adminError || emailResult.userError || "SMTP connection failed";
+      console.error("[Contact API] Email delivery failed:", errorDetail);
+      return NextResponse.json(
+        {
+          error: "Your inquiry was stored in our database, but email delivery encountered an issue. Our support team will follow up directly.",
+          details: errorDetail,
+          id: messageId,
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,

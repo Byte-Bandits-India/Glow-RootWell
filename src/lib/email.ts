@@ -1,7 +1,8 @@
 /**
  * Email Service for Avyaya
  * Handles notifications and confirmation emails for contact form inquiries,
- * purchases, and system events using standard Nodemailer over SMTP.
+ * purchases, and system events. Works seamlessly on both Node.js (via Nodemailer)
+ * and Cloudflare Workers Edge (via native cloudflare:sockets / WorkerMailer).
  */
 
 import nodemailer from "nodemailer";
@@ -29,19 +30,44 @@ const DEFAULT_FROM_EMAIL = '"Avyaya Support" <support@avyaya.com>';
 let cachedTransporter: Transporter | null = null;
 
 /**
- * Creates or retrieves the cached Nodemailer SMTP transporter.
- * Supports standard SMTP (host/port/user/pass) or named services (e.g. "gmail").
+ * Universal environment variable accessor that reads from Cloudflare context
+ * in edge runtime and falls back to process.env in Node.js.
+ */
+function getEnv(key: string): string | undefined {
+  try {
+    const symbol = Symbol.for("__cloudflare-context__");
+    const ctx = (globalThis as any)[symbol];
+    if (ctx?.env && typeof ctx.env[key] !== "undefined" && ctx.env[key] !== null) {
+      return String(ctx.env[key]);
+    }
+  } catch {}
+  return process.env[key];
+}
+
+/**
+ * Detects whether the current runtime is Cloudflare Workers
+ */
+function isCloudflareEdge(): boolean {
+  try {
+    const symbol = Symbol.for("__cloudflare-context__");
+    if ((globalThis as any)[symbol]) return true;
+    if (typeof (globalThis as any).WebSocketPair !== "undefined") return true;
+  } catch {}
+  return false;
+}
+
+/**
+ * Creates or retrieves the cached Nodemailer SMTP transporter (Node.js runtime).
  */
 function getTransporter(): Transporter | null {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const rawPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+  const host = getEnv("SMTP_HOST");
+  const user = getEnv("SMTP_USER");
+  const rawPass = getEnv("SMTP_PASS") || getEnv("SMTP_PASSWORD");
   const pass = rawPass ? rawPass.replace(/\s+/g, "") : "";
-  const service = process.env.SMTP_SERVICE;
-  const port = parseInt(process.env.SMTP_PORT || "587", 10);
-  const secure = process.env.SMTP_SECURE === "true" || port === 465;
+  const service = getEnv("SMTP_SERVICE");
+  const port = parseInt(getEnv("SMTP_PORT") || "587", 10);
+  const secure = getEnv("SMTP_SECURE") === "true" || port === 465;
 
-  // If no SMTP configuration is present in environment, return null for safe dev fallback
   if (!host && !user && !service) {
     return null;
   }
@@ -323,17 +349,99 @@ export function generateUserConfirmationEmailHtml(data: ContactPayload): string 
 }
 
 /**
- * Main email dispatcher function for contact submissions using standard Nodemailer SMTP.
- * Sends emails to both:
- * 1. The Admin (full user details, category, message, and direct reply-to)
- * 2. The User (branded confirmation and receipt)
+ * Sends emails using Cloudflare Workers edge native TCP sockets (WorkerMailer).
+ * Connects directly to SMTP server without relying on Node.js net proxy.
+ */
+async function sendViaCloudflareEdgeSocket(
+  host: string,
+  user: string,
+  pass: string,
+  data: ContactPayload,
+  adminEmail: string,
+  adminSubject: string,
+  adminHtml: string,
+  userSubject: string,
+  userHtml: string
+): Promise<{ adminSuccess: boolean; userSuccess: boolean; adminError?: string; userError?: string }> {
+  const { WorkerMailer } = await import("worker-mailer");
+
+  // Attempt port 587 (STARTTLS) first, then port 465 (Direct SSL)
+  const configs = [
+    { port: 587, secure: false, startTls: true },
+    { port: 465, secure: true, startTls: false },
+  ];
+
+  let lastError: any = null;
+
+  for (const cfg of configs) {
+    try {
+      const mailer = await WorkerMailer.connect({
+        host,
+        port: cfg.port,
+        secure: cfg.secure,
+        startTls: cfg.startTls,
+        authType: ["plain", "login"],
+        credentials: {
+          username: user,
+          password: pass,
+        },
+        socketTimeoutMs: 15000,
+        responseTimeoutMs: 15000,
+      });
+
+      // 1. Send Admin Email
+      await mailer.send({
+        from: { name: "Avyaya Support", email: user },
+        to: adminEmail,
+        reply: { name: data.name, email: data.email },
+        subject: adminSubject,
+        html: adminHtml,
+      });
+
+      // 2. Send User Confirmation Email
+      await mailer.send({
+        from: { name: "Avyaya Support", email: user },
+        to: { name: data.name, email: data.email },
+        reply: { name: "Avyaya Support", email: adminEmail },
+        subject: userSubject,
+        html: userHtml,
+      });
+
+      await mailer.close().catch(() => {});
+
+      return {
+        adminSuccess: true,
+        userSuccess: true,
+      };
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[WorkerMailer attempt on port ${cfg.port} failed]:`, err?.message || err);
+    }
+  }
+
+  return {
+    adminSuccess: false,
+    userSuccess: false,
+    adminError: lastError?.message || String(lastError),
+    userError: lastError?.message || String(lastError),
+  };
+}
+
+/**
+ * Main email dispatcher function for contact submissions.
+ * Automatically chooses edge-native socket delivery on Cloudflare Workers,
+ * and standard Nodemailer on Node.js.
  */
 export async function sendContactEmails(data: ContactPayload): Promise<EmailDispatchResult> {
-  const adminEmail = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+  const adminEmail = getEnv("ADMIN_EMAIL") || DEFAULT_ADMIN_EMAIL;
+  const user = getEnv("SMTP_USER") || "";
+  const rawPass = getEnv("SMTP_PASS") || getEnv("SMTP_PASSWORD") || "";
+  const pass = rawPass.replace(/\s+/g, "");
+  const host = getEnv("SMTP_HOST") || (getEnv("SMTP_SERVICE") === "gmail" ? "smtp.gmail.com" : "localhost");
   const fromEmail =
-    process.env.SMTP_FROM ||
-    process.env.EMAIL_FROM ||
-    (process.env.SMTP_USER ? `"Avyaya" <${process.env.SMTP_USER}>` : DEFAULT_FROM_EMAIL);
+    getEnv("SMTP_FROM") ||
+    getEnv("EMAIL_FROM") ||
+    (user ? `"Avyaya Support" <${user}>` : DEFAULT_FROM_EMAIL);
 
   const formattedTime = new Date().toLocaleString("en-US", {
     timeZone: "Asia/Kolkata",
@@ -343,18 +451,46 @@ export async function sendContactEmails(data: ContactPayload): Promise<EmailDisp
 
   const adminHtml = generateAdminEmailHtml(data, formattedTime);
   const userHtml = generateUserConfirmationEmailHtml(data);
+  const adminSubject = `[Avyaya Contact] New Inquiry from ${data.name} - ${data.category}`;
+  const userSubject = `We've received your message - Avyaya`;
 
+  // 1. If in Cloudflare Workers Edge runtime, use native edge sockets
+  if (isCloudflareEdge() && user && pass) {
+    console.log("[Avyaya Email] Dispatching via Cloudflare Edge Sockets (WorkerMailer)...");
+    const edgeResult = await sendViaCloudflareEdgeSocket(
+      host,
+      user,
+      pass,
+      data,
+      adminEmail,
+      adminSubject,
+      adminHtml,
+      userSubject,
+      userHtml
+    );
+
+    if (edgeResult.adminSuccess && edgeResult.userSuccess) {
+      return {
+        adminSuccess: true,
+        userSuccess: true,
+        provider: "smtp",
+      };
+    }
+
+    console.warn("[Avyaya Email] Edge socket delivery failed, attempting Nodemailer fallback...", edgeResult.adminError);
+  }
+
+  // 2. Node.js runtime or secondary fallback via Nodemailer
   const transporter = getTransporter();
 
-  // If no SMTP configuration is set in local environment, log details and return success for dev mode
+  // If no SMTP configuration is present at all, log and return dev mode
   if (!transporter) {
     console.log("==========================================================");
-    console.log("[Avyaya Nodemailer Dev Mode] SMTP credentials not configured.");
+    console.log("[Avyaya Email Dev Mode] SMTP credentials not configured.");
     console.log(`[Email 1 -> Admin]: To ${adminEmail} | From: ${fromEmail} | Reply-To: ${data.name} <${data.email}>`);
-    console.log(`Subject: [Avyaya Contact] New Inquiry from ${data.name} - ${data.category}`);
+    console.log(`Subject: ${adminSubject}`);
     console.log(`[Email 2 -> User]: To ${data.name} <${data.email}> | From: ${fromEmail}`);
-    console.log(`Subject: We've received your message - Avyaya`);
-    console.log("Tip: Add SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS to .env.local to send live emails via Nodemailer.");
+    console.log(`Subject: ${userSubject}`);
     console.log("==========================================================");
 
     return {
@@ -369,8 +505,7 @@ export async function sendContactEmails(data: ContactPayload): Promise<EmailDisp
   let adminError: string | undefined;
   let userError: string | undefined;
 
-  // 1. Send Admin Notification Email
-  const adminSubject = `[Avyaya Contact] New Inquiry from ${data.name} - ${data.category}`;
+  // Send Admin Notification Email
   try {
     await transporter.sendMail({
       from: fromEmail,
@@ -386,8 +521,7 @@ export async function sendContactEmails(data: ContactPayload): Promise<EmailDisp
     console.error("[Nodemailer Error - Admin]:", err);
   }
 
-  // 2. Send User Confirmation Email
-  const userSubject = `We've received your message - Avyaya`;
+  // Send User Confirmation Email
   try {
     await transporter.sendMail({
       from: fromEmail,
