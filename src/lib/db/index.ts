@@ -1,16 +1,38 @@
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
+import { createClient, type Client } from "@libsql/client";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
-// Standard SQLite database file locally; in Cloudflare/production can be set to Cloudflare D1 / Turso URL
-const dbUrl = process.env.DATABASE_URL || "file:rootwell.db";
+let _client: Client | null = null;
+let _db: LibSQLDatabase<typeof schema> | null = null;
 
-export const client = createClient({
-  url: dbUrl,
-  authToken: process.env.DATABASE_AUTH_TOKEN,
+function getClientInstance(): Client {
+  if (!_client) {
+    const dbUrl = process.env.DATABASE_URL || "file:rootwell.db";
+    _client = createClient({
+      url: dbUrl,
+      authToken: process.env.DATABASE_AUTH_TOKEN,
+    });
+  }
+  return _client;
+}
+
+export const client = new Proxy({} as Client, {
+  get(_target, prop, receiver) {
+    const instance = getClientInstance();
+    const value = Reflect.get(instance, prop, receiver);
+    return typeof value === "function" ? value.bind(instance) : value;
+  },
 });
 
-export const db = drizzle(client, { schema });
+export const db = new Proxy({} as LibSQLDatabase<typeof schema>, {
+  get(_target, prop, receiver) {
+    if (!_db) {
+      _db = drizzle(getClientInstance(), { schema });
+    }
+    const value = Reflect.get(_db, prop, receiver);
+    return typeof value === "function" ? value.bind(_db) : value;
+  },
+});
 
 let isInitialized = false;
 
