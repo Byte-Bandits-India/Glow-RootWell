@@ -29,7 +29,7 @@ export function getDb(): any {
 
   if (!_cachedLibsqlDb) {
     if (!_cachedLibsqlClient) {
-      const dbUrl = process.env.DATABASE_URL || "file:rootwell.db";
+      const dbUrl = process.env.DATABASE_URL || "file:avyaya.db";
       _cachedLibsqlClient = createClient({
         url: dbUrl,
         authToken: process.env.DATABASE_AUTH_TOKEN,
@@ -73,7 +73,7 @@ export function getClient(): any {
   }
 
   if (!_cachedLibsqlClient) {
-    const dbUrl = process.env.DATABASE_URL || "file:rootwell.db";
+    const dbUrl = process.env.DATABASE_URL || "file:avyaya.db";
     _cachedLibsqlClient = createClient({
       url: dbUrl,
       authToken: process.env.DATABASE_AUTH_TOKEN,
@@ -210,6 +210,51 @@ export async function ensureDbInitialized() {
     await client.execute(`
       CREATE INDEX IF NOT EXISTS idx_prompts_slug ON prompts(slug);
     `);
+
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        category TEXT NOT NULL,
+        ai_tool TEXT NOT NULL,
+        message TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'new',
+        admin_notified INTEGER DEFAULT 0,
+        user_notified INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL
+      );
+    `);
+
+    await client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_contact_messages_email ON contact_messages(email);
+    `);
+
+    await client.execute(`
+      CREATE INDEX IF NOT EXISTS idx_contact_messages_created ON contact_messages(created_at);
+    `);
+
+    // In local development, if prompts table is empty, auto-seed from d1/prompts.sql
+    try {
+      const env = getCloudflareEnv();
+      if (!env?.DB) {
+        const check = await client.execute("SELECT count(*) as c FROM prompts");
+        const count = Number((check.rows[0] as any)?.c || 0);
+        if (count === 0) {
+          const fs = await import("fs");
+          const path = await import("path");
+          const sqlFile = path.resolve(process.cwd(), "d1/prompts.sql");
+          if (fs.existsSync(sqlFile)) {
+            const sql = fs.readFileSync(sqlFile, "utf-8");
+            const stmts = sql.split(";\n").map((s) => s.trim()).filter(Boolean);
+            for (let i = 0; i < stmts.length; i += 50) {
+              const batch = stmts.slice(i, i + 50);
+              await Promise.all(batch.map((s) => client.execute(s)));
+            }
+          }
+        }
+      }
+    } catch {}
 
     isInitialized = true;
   } catch (error) {

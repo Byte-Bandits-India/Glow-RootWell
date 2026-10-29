@@ -69,6 +69,19 @@ export const prompts = sqliteTable("prompts", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
+export const contactMessages = sqliteTable("contact_messages", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  category: text("category").notNull(),
+  aiTool: text("ai_tool").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("new"), // "new" | "replied" | "archived"
+  adminNotified: integer("admin_notified", { mode: "boolean" }).default(false),
+  userNotified: integer("user_notified", { mode: "boolean" }).default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
@@ -77,4 +90,6 @@ export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type Prompt = typeof prompts.$inferSelect;
 export type NewPrompt = typeof prompts.$inferInsert;
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type NewContactMessage = typeof contactMessages.$inferInsert;
 

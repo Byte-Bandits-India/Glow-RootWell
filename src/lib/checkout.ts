@@ -80,16 +80,16 @@ export async function initiateCheckout(options: CheckoutOptions) {
       key: keyId,
       amount,
       currency,
-      name: "Rootwell Clinical AI",
+      name: "Avyaya Clinical AI",
       description: `${planName} Lifetime Access`,
-      image: "/favicon.ico",
+      image: "/Avyaya_Logo.png",
       order_id: orderId,
       prefill: {
         name: user?.name || "",
         email: user?.email || "",
       },
       theme: {
-        color: "#0B2C13", // Rootwell forest green brand color
+        color: "#0B2C13", // Avyaya forest green brand color
       },
       handler: async function (response: {
         razorpay_order_id: string;

@@ -19,6 +19,7 @@ import {
   Briefcase,
   Headphones,
   Check,
+  AlertCircle,
 } from "lucide-react";
 import {
   Accordion,
@@ -53,22 +54,22 @@ const CONTACT_FAQS = [
   {
     question: "I haven't received my confirmation or download email. What should I do?",
     answer:
-      "First, check your spam or promotions folder for an email from support@rootwell.ai. If you still don't see it within 5 minutes, email us directly with your order reference or payment email, and we will reissue your download link immediately.",
+      "First, check your spam or promotions folder for an email from support@avyaya.com. If you still don't see it within 5 minutes, email us directly with your order reference or payment email, and we will reissue your download link immediately.",
   },
   {
-    question: "Can I use Rootwell prompts with my coaching clients?",
+    question: "Can I use Avyaya prompts with my coaching clients?",
     answer:
       "Yes! Our All-Access and Coach bundles explicitly include commercial client rights. You can use our intake frameworks and protocol templates to generate personalized routines for your clients without extra royalty fees.",
   },
   {
     question: "What is your refund policy?",
     answer:
-      "We provide an unconditional 7-day money-back guarantee. If you test our prompts in your favorite AI and don't feel they gave you clinical-grade, personalized advice, just email support@rootwell.ai within 7 days for a full refund.",
+      "We provide an unconditional 7-day money-back guarantee. If you test our prompts in your favorite AI and don't feel they gave you clinical-grade, personalized advice, just email support@avyaya.com within 7 days for a full refund.",
   },
   {
     question: "Do you offer custom prompt packages for clinics or enterprise gyms?",
     answer:
-      "Yes. We collaborate directly with functional medicine practitioners, aesthetic clinics, and boutique fitness studios to build proprietary AI intake workflows. Contact partners@rootwell.ai to discuss your practice's needs.",
+      "Yes. We collaborate directly with functional medicine practitioners, aesthetic clinics, and boutique fitness studios to build proprietary AI intake workflows. Contact partners@avyaya.com to discuss your practice's needs.",
   },
 ];
 
@@ -83,16 +84,39 @@ export default function ContactPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     setIsSubmitting(true);
 
-    // Simulate reliable API delivery
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error || "We could not deliver your message right now. Please try again."
+        );
+      }
+
       setIsSubmitted(true);
-    }, 900);
+    } catch (err: any) {
+      setErrorMessage(
+        err.message ||
+          "An unexpected error occurred while sending your message. Please try again or reach out to support@avyaya.com."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
@@ -103,6 +127,7 @@ export default function ContactPage() {
       aiTool: "ChatGPT",
       message: "",
     });
+    setErrorMessage(null);
     setIsSubmitted(false);
   };
 
@@ -163,10 +188,10 @@ export default function ContactPage() {
               </div>
               <div className="pt-5 mt-4 border-t border-gray-100">
                 <a
-                  href="mailto:support@rootwell.ai"
+                  href="mailto:support@avyaya.com"
                   className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[var(--color-accent-hover)] hover:underline"
                 >
-                  support@rootwell.ai
+                  support@avyaya.com
                   <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -187,10 +212,10 @@ export default function ContactPage() {
               </div>
               <div className="pt-5 mt-4 border-t border-gray-100">
                 <a
-                  href="mailto:partners@rootwell.ai"
+                  href="mailto:partners@avyaya.com"
                   className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[var(--color-accent-hover)] hover:underline"
                 >
-                  partners@rootwell.ai
+                  partners@avyaya.com
                   <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -211,10 +236,10 @@ export default function ContactPage() {
               </div>
               <div className="pt-5 mt-4 border-t border-gray-100">
                 <a
-                  href="mailto:prompts@rootwell.ai"
+                  href="mailto:prompts@avyaya.com"
                   className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#D9532F] hover:underline"
                 >
-                  prompts@rootwell.ai
+                  prompts@avyaya.com
                   <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -310,7 +335,7 @@ export default function ContactPage() {
                         Message Received!
                       </h3>
                       <p className="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto leading-relaxed">
-                        Thank you, <strong>{form.name}</strong>. We&apos;ve logged your inquiry under <em>{form.category}</em>. A confirmation has been dispatched to <strong>{form.email}</strong>.
+                        Thank you, <strong>{form.name}</strong>. We&apos;ve logged your inquiry under <em>{form.category}</em>. A confirmation receipt has been emailed to <strong>{form.email}</strong>, and our administration team has been notified.
                       </p>
                     </div>
 
@@ -439,6 +464,14 @@ export default function ContactPage() {
                         <span>{form.message.length} characters</span>
                       </div>
                     </div>
+
+                    {/* Error Banner */}
+                    {errorMessage && (
+                      <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-start gap-2.5">
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                        <span className="leading-relaxed">{errorMessage}</span>
+                      </div>
+                    )}
 
                     {/* Submit Button */}
                     <div className="pt-2">

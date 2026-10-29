@@ -4,8 +4,8 @@ import { ArrowLeft, ShieldCheck, Lock } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 
 export const metadata = {
-  title: "Privacy Policy | Rootwell",
-  description: "Privacy policy and data protection practices for Rootwell members.",
+  title: "Privacy Policy | Avyaya",
+  description: "Privacy policy and data protection practices for Avyaya members.",
 };
 
 export default function PrivacyPage() {

@@ -5,10 +5,11 @@ import { eq, desc, asc, and, like, or } from "drizzle-orm";
 import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 import { hasAccessToBundle } from "@/lib/plans";
 import { importPromptsFromExcel } from "@/lib/excel/promptImporter";
-import { connection } from "next/server";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
-  await connection();
   try {
     await ensureDbInitialized();
 
@@ -21,36 +22,57 @@ export async function GET(req: NextRequest) {
 
     // 1. Resolve user plan for ownership
     let userPlan = "free";
-    const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
-    if (token) {
-      const payload = await verifySessionToken(token);
-      if (payload?.id) {
-        const u = await db
-          .select({ plan: users.plan })
-          .from(users)
-          .where(eq(users.id, payload.id))
-          .limit(1);
-        if (u.length > 0 && u[0].plan) {
-          userPlan = u[0].plan;
+    try {
+      const token = req.cookies?.get?.(AUTH_COOKIE_NAME)?.value;
+      if (token) {
+        const payload = await verifySessionToken(token);
+        if (payload?.id) {
+          const u = await db
+            .select({ plan: users.plan })
+            .from(users)
+            .where(eq(users.id, payload.id))
+            .limit(1);
+          if (u.length > 0 && u[0].plan) {
+            userPlan = u[0].plan;
+          }
         }
       }
+    } catch {
+      // Gracefully fallback to free plan
     }
 
     // 2. Fetch all active prompts from database
     const dbRes = await client.execute("SELECT * FROM prompts WHERE is_active = 1 ORDER BY category, sort_order");
     const allRows = dbRes.rows as any[];
 
-    // 3. Compute counts across the entire catalog
+    // 3. Compute dynamic categories and counts across the entire catalog
+    const categoryMap: Record<string, { key: string; label: string; count: number; subtopics: Set<string> }> = {};
     const categoryCounts: Record<string, number> = { all: allRows.length };
     const bundleCounts: Record<string, number> = { free: 0, starter: 0, pro: 0 };
     let ownedCount = 0;
 
     for (const r of allRows) {
-      const cat = r.category as string;
+      const catKey = (r.category as string) || "uncategorized";
+      const catLabel = (r.category_label as string) || catKey;
+      const sub = r.subtopic as string;
       const bnd = r.bundle as string;
-      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+
+      categoryCounts[catKey] = (categoryCounts[catKey] || 0) + 1;
       if (bnd in bundleCounts) {
         bundleCounts[bnd] = (bundleCounts[bnd] || 0) + 1;
+      }
+
+      if (!categoryMap[catKey]) {
+        categoryMap[catKey] = {
+          key: catKey,
+          label: catLabel,
+          count: 0,
+          subtopics: new Set(),
+        };
+      }
+      categoryMap[catKey].count++;
+      if (sub) {
+        categoryMap[catKey].subtopics.add(sub);
       }
 
       const isOwned = bnd === "free" || hasAccessToBundle(userPlan, bnd as any);
@@ -58,6 +80,13 @@ export async function GET(req: NextRequest) {
         ownedCount++;
       }
     }
+
+    const categories = Object.values(categoryMap).map((c) => ({
+      key: c.key,
+      label: c.label,
+      count: c.count,
+      subtopics: Array.from(c.subtopics),
+    }));
 
     // 4. Apply filters
     let filtered = allRows.map((r) => {
@@ -123,6 +152,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       prompts: filtered,
+      categories,
       counts: {
         total: allRows.length,
         filtered: filtered.length,

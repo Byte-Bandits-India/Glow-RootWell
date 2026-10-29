@@ -84,7 +84,7 @@ export const HeroReference: React.FC = () => {
                 <div className="w-full h-full rounded-full overflow-hidden relative border-2 border-white/70 bg-[#14331C]">
                   <Image
                     src="/woman-with-long-hair.jpg"
-                    alt="Rootwell wellness member"
+                    alt="Avyaya wellness member"
                     fill
                     priority
                     sizes="(max-width: 640px) 280px, (max-width: 1024px) 440px, 510px"

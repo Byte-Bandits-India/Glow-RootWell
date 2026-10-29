@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +13,7 @@ import { ClinicalDashboard } from "@/components/home/ClinicalDashboard";
 import { TakeControlSection } from "@/components/home/TakeControlSection";
 import { PricingSection } from "@/components/home/PricingSection";
 import { FaqAccordion } from "@/components/home/FaqAccordion";
+import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { PromptCard } from "@/components/shared/PromptCard";
 import { PromptModal } from "@/components/shared/PromptModal";
@@ -43,13 +43,16 @@ export default function HomePage() {
       {/* 5. How It Works Section */}
       <TakeControlSection />
 
+      {/* Verified Clinical Testimonials Section */}
+      <TestimonialsSection />
+
       {/* 9. FAQ Section */}
       <Section variant="ivory" padding="default" id="faq">
         <Container>
           <SectionHeading
             eyebrow="Questions, Answered"
             title="Frequently Asked Questions"
-            subtitle="Everything you need to know about Rootwell clinical prompts, AI tool compatibility, and our 7-day guarantee."
+            subtitle="Everything you need to know about Avyaya clinical prompts, AI tool compatibility, and our 7-day guarantee."
           />
           <FaqAccordion />
         </Container>
@@ -59,11 +62,6 @@ export default function HomePage() {
       <Section variant="sage" padding="default">
         <Container size="narrow">
           <div className="text-center space-y-6">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/75 border border-[#0B2C13]/15 text-xs font-semibold text-[#0B2C13] shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-[#14532D]" />
-              Instant Access Today
-            </span>
-
             <h2 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal text-[#0B2C13] leading-tight tracking-tight">
               Your healthiest self is one structured prompt away.
             </h2>

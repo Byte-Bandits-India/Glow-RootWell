@@ -15,7 +15,8 @@ export type BadgeVariant =
   | "starter"
   | "pro"
   | "teal"
-  | "default";
+  | "default"
+  | (string & {});
 
 export interface BadgeProps {
   variant?: BadgeVariant;

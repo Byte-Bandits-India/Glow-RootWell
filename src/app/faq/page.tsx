@@ -46,13 +46,13 @@ const EXTENDED_FAQS: ExtendedFaqItem[] = [
   {
     question: "Is this medical advice?",
     answer:
-      "No. Rootwell prompts are designed for lifestyle education, daily wellness organization, meal planning, and appointment preparation. They do not diagnose or treat medical conditions and do not replace a licensed physician.",
+      "No. Avyaya prompts are designed for lifestyle education, daily wellness organization, meal planning, and appointment preparation. They do not diagnose or treat medical conditions and do not replace a licensed physician.",
     category: "safety",
   },
   {
     question: "How does the 7-day money-back guarantee work?",
     answer:
-      "We stand behind our library 100%. If you try the prompts and don't feel they transformed your AI responses within 7 days, email support@rootwell.ai and we will promptly refund your payment in full, no questions asked.",
+      "We stand behind our library 100%. If you try the prompts and don't feel they transformed your AI responses within 7 days, email support@avyaya.com and we will promptly refund your payment in full, no questions asked.",
     category: "pricing",
   },
   {
@@ -80,9 +80,9 @@ const EXTENDED_FAQS: ExtendedFaqItem[] = [
     category: "ai",
   },
   {
-    question: "What makes Rootwell prompts different from free online prompts?",
+    question: "What makes Avyaya prompts different from free online prompts?",
     answer:
-      "Most free prompts are simple one-sentence commands that cause AI to give generic, surface-level advice. Rootwell prompts are multi-stage clinical protocols that instruct the AI to conduct an intake diagnostic interview first, account for your individual biomarkers, evaluate active ingredient contraindications, and structure phased 30-day action plans.",
+      "Most free prompts are simple one-sentence commands that cause AI to give generic, surface-level advice. Avyaya prompts are multi-stage clinical protocols that instruct the AI to conduct an intake diagnostic interview first, account for your individual biomarkers, evaluate active ingredient contraindications, and structure phased 30-day action plans.",
     category: "safety",
   },
   {
@@ -148,7 +148,7 @@ export default function FaqPage() {
             </h1>
 
             <p className="text-base sm:text-lg text-[var(--color-secondary)]/90 max-w-2xl mx-auto leading-relaxed">
-              Everything you need to know about Rootwell clinical prompts, AI tool compatibility, our 7-day guarantee, and health guidelines.
+              Everything you need to know about Avyaya clinical prompts, AI tool compatibility, our 7-day guarantee, and health guidelines.
             </p>
           </div>
         </Container>

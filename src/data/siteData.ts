@@ -146,11 +146,11 @@ export const FAQS: FaqItem[] = [
   },
   {
     question: "Is this medical advice?",
-    answer: "No. Rootwell prompts are designed for lifestyle education, daily wellness organization, meal planning, and appointment preparation. They do not diagnose or treat medical conditions and do not replace a licensed physician.",
+    answer: "No. Avyaya prompts are designed for lifestyle education, daily wellness organization, meal planning, and appointment preparation. They do not diagnose or treat medical conditions and do not replace a licensed physician.",
   },
   {
     question: "How does the 7-day money-back guarantee work?",
-    answer: "We stand behind our library 100%. If you try the prompts and don't feel they transformed your AI responses within 7 days, email support@rootwell.ai and we will promptly refund your payment in full, no questions asked.",
+    answer: "We stand behind our library 100%. If you try the prompts and don't feel they transformed your AI responses within 7 days, email support@avyaya.com and we will promptly refund your payment in full, no questions asked.",
   },
   {
     question: "How do I receive updates to the library?",

@@ -2,10 +2,10 @@ import { SignJWT, jwtVerify } from "jose";
 import { hash, compare } from "bcrypt-ts";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "rootwell-super-secure-jwt-secret-key-32chars-min-change-in-prod"
+  process.env.AUTH_SECRET || "avyaya-super-secure-jwt-secret-key-32chars-min-change-in-prod"
 );
 
-export const AUTH_COOKIE_NAME = "rootwell_session";
+export const AUTH_COOKIE_NAME = "avyaya_session";
 
 export interface SessionUser {
   id: string;

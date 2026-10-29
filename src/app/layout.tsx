@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Rootwell – The wellness prompt library",
+  title: "Avyaya – The wellness prompt library",
   description:
     "500+ expert-written prompts for skin, gut, nutrition and fitness. Works with ChatGPT, Claude, Gemini and any AI.",
   keywords: [
@@ -16,14 +16,14 @@ export const metadata: Metadata = {
     "nutrition AI prompts",
     "fitness prompts",
     "ChatGPT health prompts",
-    "Rootwell",
+    "Avyaya",
   ],
-  authors: [{ name: "Rootwell" }],
+  authors: [{ name: "Avyaya" }],
   openGraph: {
-    title: "Rootwell – The wellness prompt library",
+    title: "Avyaya – The wellness prompt library",
     description:
       "500+ expert-written prompts for skin, gut, nutrition and fitness. Works with ChatGPT, Claude, Gemini and any AI.",
-    siteName: "Rootwell",
+    siteName: "Avyaya",
     type: "website",
   },
 };

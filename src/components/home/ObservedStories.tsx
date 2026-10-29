@@ -6,22 +6,24 @@ import { Container } from "../layout/Container";
 
 export const ObservedStories: React.FC = () => {
   return (
-    <section className="relative text-[#0B2C13] bg-[#EEEDF3] flex items-center py-10 sm:py-14 lg:pt-16 lg:pb-12 lg:min-h-[560px] border-b border-[#E1E5DA] overflow-hidden">
-      {/* Desktop Full-width seamless studio background photo */}
-      <div className="hidden lg:block absolute inset-0 z-0">
-        <Image
-          src="/doctor-seamless-bg.jpg"
-          alt="Clinical wellness expert"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-bottom"
-        />
+    <section className="relative text-[#0B2C13] bg-gradient-to-b from-[#F6F5FA] via-[#F0EFF5] to-[#E2DCE6] flex items-center py-10 sm:py-14 lg:pt-16 lg:pb-8 lg:min-h-[580px] xl:min-h-[640px] 2xl:min-h-[680px] border-b border-[#E1E5DA] overflow-hidden">
+      {/* Desktop seamless studio background photo - matches background gradient and feathers edges */}
+      <div className="hidden lg:block absolute inset-0 z-0 pointer-events-none">
+        <div className="relative w-full h-full max-w-[1440px] xl:max-w-[1536px] 2xl:max-w-[1600px] mx-auto [mask-image:linear-gradient(to_right,transparent,black_48px,black_calc(100%-48px),transparent)]">
+          <Image
+            src="/doctor-seamless-bg.jpg"
+            alt="Clinical wellness expert"
+            fill
+            priority
+            sizes="(max-width: 1536px) 100vw, 1600px"
+            className="object-contain object-bottom"
+          />
+        </div>
       </div>
 
       <Container className="max-w-[1240px] xl:max-w-[1280px] w-full relative z-10">
         {/* Desktop Layout (lg screens and up) */}
-        <div className="hidden lg:grid grid-cols-12 gap-6 xl:gap-8 items-stretch min-h-[380px]">
+        <div className="hidden lg:grid grid-cols-12 gap-6 xl:gap-8 items-stretch min-h-[440px] xl:min-h-[480px]">
           {/* Left Column: Heading & "For coaches" */}
           <div className="col-span-4 flex flex-col justify-between py-1">
             <div>

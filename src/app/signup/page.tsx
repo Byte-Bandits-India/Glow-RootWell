@@ -145,7 +145,7 @@ export default function SignUpPage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/young-woman-doctor-white.jpg"
-            alt="Rootwell clinical wellness specialist"
+            alt="Avyaya clinical wellness specialist"
             fill
             priority
             sizes="50vw"
@@ -160,12 +160,14 @@ export default function SignUpPage() {
         {/* Top Header / Brand Link */}
         <div className="relative z-10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold">
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-                <path d="M12 22c0-6 1-10 8-16-1 7-3 11-8 16zM12 22C12 15 9 11 3 8c0 6 3 10 9 14z" />
-              </svg>
-            </span>
-            <span className="font-heading font-bold text-2xl tracking-tight text-white">Rootwell</span>
+            <Image
+              src="/Avyaya_Logo.png"
+              alt="Avyaya"
+              width={160}
+              height={44}
+              className="h-9 w-auto object-contain"
+              priority
+            />
           </Link>
         </div>
 
@@ -188,12 +190,13 @@ export default function SignUpPage() {
             {/* Mobile shows logo */}
             <div className="lg:hidden">
               <Link href="/" className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-full bg-[#0B2C13] text-[var(--color-accent)] flex items-center justify-center font-bold">
-                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
-                    <path d="M12 22c0-6 1-10 8-16-1 7-3 11-8 16zM12 22C12 15 9 11 3 8c0 6 3 10 9 14z" />
-                  </svg>
-                </span>
-                <span className="font-heading font-bold text-xl text-[#0B2C13]">Rootwell</span>
+                <Image
+                  src="/Avyaya_Logo.png"
+                  alt="Avyaya"
+                  width={140}
+                  height={38}
+                  className="h-8 w-auto object-contain rounded-lg bg-[#0B2C13] px-2 py-1"
+                />
               </Link>
             </div>
 
@@ -228,7 +231,7 @@ export default function SignUpPage() {
             <div className="p-3 sm:p-3.5 rounded-2xl bg-[#E8F5E9] border border-[#C8E6C9] flex items-center gap-3 text-sm text-[#1B5E20] animate-in fade-in duration-300">
               <CheckCircle2 className="w-5 h-5 text-[#2E7D32] shrink-0" />
               <div>
-                <p className="font-semibold text-xs sm:text-sm">Welcome to Rootwell!</p>
+                <p className="font-semibold text-xs sm:text-sm">Welcome to Avyaya!</p>
                 <p className="text-[11px] sm:text-xs text-[#2E7D32]/90">Setting up your personal prompt workspace...</p>
               </div>
             </div>

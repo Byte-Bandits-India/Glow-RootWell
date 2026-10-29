@@ -4,8 +4,8 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 
 export const metadata = {
-  title: "Terms of Service | Rootwell",
-  description: "Terms and conditions for Rootwell AI Prompt Library membership and services.",
+  title: "Terms of Service | Avyaya",
+  description: "Terms and conditions for Avyaya AI Prompt Library membership and services.",
 };
 
 export default function TermsPage() {
@@ -38,7 +38,7 @@ export default function TermsPage() {
                 1. Acceptance of Terms
               </h2>
               <p>
-                By creating an account or accessing Rootwell&apos;s prompt library, you agree to comply with and be bound by these Terms of Service.
+                By creating an account or accessing Avyaya&apos;s prompt library, you agree to comply with and be bound by these Terms of Service.
               </p>
             </section>
 
@@ -47,7 +47,7 @@ export default function TermsPage() {
                 2. Educational &amp; Information Use Only
               </h2>
               <p>
-                Rootwell provides structured AI prompting frameworks for wellness research, education, and lifestyle optimization. Rootwell does not provide formal medical diagnoses or clinical prescription services.
+                Avyaya provides structured AI prompting frameworks for wellness research, education, and lifestyle optimization. Avyaya does not provide formal medical diagnoses or clinical prescription services.
               </p>
             </section>
 

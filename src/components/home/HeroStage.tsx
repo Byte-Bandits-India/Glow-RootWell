@@ -221,7 +221,7 @@ export const HeroStage: React.FC = () => {
                         <BotanicalBranch />
                       </div>
                       <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/70 backdrop-blur-xs text-[#0B2C13]">
-                        {cat.count}+ prompts
+                        {cat.count > 0 ? `${cat.count}+ prompts` : "Explore prompts"}
                       </span>
                     </div>
                     <div className="p-3.5">

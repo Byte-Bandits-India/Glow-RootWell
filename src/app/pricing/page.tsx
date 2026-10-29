@@ -43,7 +43,7 @@ export default function PricingPage() {
     {
       question: "How does the 7-day money-back guarantee work?",
       answer:
-        "We believe in our prompt library 100%. If you try the prompts in ChatGPT, Claude or Gemini and don't feel they transformed your routines within 7 days, email support@rootwell.ai and we will immediately refund 100% of your money. No questions asked.",
+        "We believe in our prompt library 100%. If you try the prompts in ChatGPT, Claude or Gemini and don't feel they transformed your routines within 7 days, email support@avyaya.com and we will immediately refund 100% of your money. No questions asked.",
     },
     {
       question: "Can I upgrade from Starter to Pro later?",

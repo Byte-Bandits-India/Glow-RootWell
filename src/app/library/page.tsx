@@ -22,6 +22,7 @@ import {
   PromptCategory,
   PromptBundle,
   PromptItem,
+  getCategoryMeta,
 } from "@/data/promptsData";
 import {
   Search,
@@ -42,7 +43,11 @@ import {
 function LibraryContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
-  const initialCategory = searchParams.get("cat") as PromptCategory | null;
+  const rawCat = searchParams.get("cat");
+  const initialCategory =
+    rawCat && (rawCat in CATEGORIES || rawCat === "skin" || rawCat === "gut" || rawCat === "nutrition" || rawCat === "fitness")
+      ? (rawCat as PromptCategory)
+      : "all";
 
   const [promptsList, setPromptsList] = useState<PromptItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +67,16 @@ function LibraryContent() {
   const [selectedCategory, setSelectedCategory] = useState<PromptCategory | "all">(
     initialCategory || "all"
   );
+
+  // Sync selectedCategory whenever URL parameter changes (e.g. from footer clicks)
+  useEffect(() => {
+    const cat = searchParams.get("cat");
+    if (cat && (cat in CATEGORIES || cat === "skin" || cat === "gut" || cat === "nutrition" || cat === "fitness")) {
+      setSelectedCategory(cat as PromptCategory);
+    } else if (!cat) {
+      setSelectedCategory("all");
+    }
+  }, [searchParams]);
   const [selectedBundle, setSelectedBundle] = useState<PromptBundle | "all" | "owned">("all");
   const [sortBy, setSortBy] = useState<"new" | "old" | "az">("new");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -69,18 +84,28 @@ function LibraryContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
+  // Dynamic categories received from backend API
+  const [apiCategories, setApiCategories] = useState<
+    Array<{ key: string; label: string; count: number; subtopics?: string[] }>
+  >([]);
+
   const fetchPrompts = useCallback(async () => {
     try {
       setIsLoading(true);
       const res = await fetch("/api/prompts");
       if (res.ok) {
         const data = await res.json();
-        if (data.prompts && data.prompts.length > 0) {
+        if (data.prompts && Array.isArray(data.prompts)) {
           setPromptsList(data.prompts);
         }
         if (data.counts) {
           setDbCounts(data.counts);
         }
+        if (data.categories && Array.isArray(data.categories)) {
+          setApiCategories(data.categories);
+        }
+      } else {
+        console.error("API /api/prompts returned status:", res.status);
       }
     } catch (err) {
       console.error("Failed to load prompts from API:", err);
@@ -95,6 +120,43 @@ function LibraryContent() {
 
   const basePrompts = promptsList;
 
+  // Fully dynamic categories list - driven by backend API and DB rows
+  const categoriesList = useMemo(() => {
+    if (apiCategories.length > 0) {
+      return apiCategories.map((c) => ({
+        ...getCategoryMeta(c.key, c.label, c.count),
+        count: dbCounts.categories?.[c.key] ?? c.count,
+      }));
+    }
+    // Fallback: derive categories directly from loaded prompts
+    const map = new Map<string, { key: string; label: string; count: number }>();
+    basePrompts.forEach((p) => {
+      const existing = map.get(p.category);
+      if (existing) {
+        existing.count++;
+      } else {
+        map.set(p.category, {
+          key: p.category,
+          label: p.categoryLabel || p.category,
+          count: 1,
+        });
+      }
+    });
+    return Array.from(map.values()).map((c) =>
+      getCategoryMeta(c.key, c.label, c.count)
+    );
+  }, [apiCategories, basePrompts, dbCounts.categories]);
+
+  // Label for active filter badge
+  const activeCategoryLabel = useMemo(() => {
+    if (selectedCategory === "all") return "";
+    const found = categoriesList.find((c) => c.key === selectedCategory);
+    if (found) return found.label;
+    const fromPrompt = basePrompts.find((p) => p.category === selectedCategory);
+    if (fromPrompt?.categoryLabel) return fromPrompt.categoryLabel;
+    return CATEGORIES[selectedCategory]?.label || selectedCategory;
+  }, [selectedCategory, categoriesList, basePrompts]);
+
   // Helper: check if active user owns access to this prompt
   const isPromptOwned = (p: PromptItem) => {
     if (typeof p.isOwned === "boolean") return p.isOwned;
@@ -103,12 +165,23 @@ function LibraryContent() {
 
   // Category counts
   const categoryCounts = useMemo(() => {
-    if (dbCounts.categories && Object.keys(dbCounts.categories).length > 0) {
-      return dbCounts.categories;
-    }
     const counts: Record<string, number> = { all: basePrompts.length };
+    if (dbCounts.categories) {
+      Object.assign(counts, dbCounts.categories);
+    }
     basePrompts.forEach((p) => {
       counts[p.category] = (counts[p.category] || 0) + 1;
+      const lower = (p.title + " " + (p.subtopic || "") + " " + (p.description || "") + " " + p.promptText).toLowerCase();
+      if (lower.includes("skin")) counts["skin"] = (counts["skin"] || 0) + 1;
+      if (lower.includes("gut") || lower.includes("bloat") || lower.includes("digest") || lower.includes("microbiome")) {
+        counts["gut"] = (counts["gut"] || 0) + 1;
+      }
+      if (p.category === "fat_loss" || lower.includes("nutrition") || lower.includes("diet") || lower.includes("meal")) {
+        counts["nutrition"] = (counts["nutrition"] || 0) + 1;
+      }
+      if (lower.includes("fitness") || lower.includes("workout") || lower.includes("metabolic")) {
+        counts["fitness"] = (counts["fitness"] || 0) + 1;
+      }
     });
     return counts;
   }, [dbCounts.categories, basePrompts]);
@@ -134,8 +207,61 @@ function LibraryContent() {
   // Filtered & sorted prompts
   const filteredPrompts = useMemo(() => {
     let result = basePrompts.filter((p) => {
-      const matchCat =
-        selectedCategory === "all" || p.category === selectedCategory;
+      const promptCat = (p.category || "").toLowerCase().trim();
+      const selCat = (selectedCategory || "all").toLowerCase().trim();
+
+      const matchCat = (() => {
+        if (selCat === "all") return true;
+        if (promptCat === selCat) return true;
+
+        const text = (
+          (p.title || "") +
+          " " +
+          (p.subtopic || "") +
+          " " +
+          (p.description || "") +
+          " " +
+          (p.purpose || "") +
+          " " +
+          (p.categoryLabel || "") +
+          " " +
+          (p.promptText || "")
+        ).toLowerCase();
+
+        if (selCat === "skin") {
+          return promptCat === "skin" || text.includes("skin") || text.includes("derma");
+        }
+        if (selCat === "gut") {
+          return (
+            promptCat === "gut" ||
+            text.includes("gut") ||
+            text.includes("bloat") ||
+            text.includes("digest") ||
+            text.includes("microbiome")
+          );
+        }
+        if (selCat === "nutrition") {
+          return (
+            promptCat === "nutrition" ||
+            promptCat === "fat_loss" ||
+            text.includes("nutrition") ||
+            text.includes("diet") ||
+            text.includes("meal") ||
+            text.includes("protein") ||
+            text.includes("calorie")
+          );
+        }
+        if (selCat === "fitness") {
+          return (
+            promptCat === "fitness" ||
+            text.includes("fitness") ||
+            text.includes("workout") ||
+            text.includes("training") ||
+            text.includes("metabolic")
+          );
+        }
+        return false;
+      })();
       const matchBundle =
         selectedBundle === "all"
           ? true
@@ -256,7 +382,7 @@ function LibraryContent() {
               Searchable Knowledge Base
             </span>
             <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-normal text-[var(--color-text-primary)]">
-              The Rootwell Prompt Library
+              The Avyaya Prompt Library
             </h1>
             <p className="text-sm sm:text-base text-[var(--color-text-secondary)] leading-relaxed">
               Explore {dbCounts.total || basePrompts.length}+ clinical & business transformation prompts. Test free samples or unlock the complete Pro vault.
@@ -389,16 +515,15 @@ function LibraryContent() {
                   </span>
                 </button>
 
-                {(Object.keys(CATEGORIES) as PromptCategory[]).map((catKey) => {
-                  const cat = CATEGORIES[catKey];
-                  const isSelected = selectedCategory === catKey;
+                {categoriesList.map((cat) => {
+                  const isSelected = selectedCategory === cat.key;
                   return (
                     <button
-                      key={catKey}
+                      key={cat.key}
                       type="button"
                       onClick={() =>
                         setSelectedCategory(
-                          isSelected ? "all" : catKey
+                          isSelected ? "all" : cat.key
                         )
                       }
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
@@ -407,25 +532,25 @@ function LibraryContent() {
                           : "text-[var(--color-text-primary)] hover:bg-[var(--color-background)]"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <span
                           className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
                           style={{
                             backgroundColor: cat.tintBg,
                           }}
                         >
-                          {getCategoryIcon(catKey)}
+                          {getCategoryIcon(cat.key)}
                         </span>
-                        <span>{cat.label}</span>
+                        <span className="truncate">{cat.label}</span>
                       </div>
                       <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full ${
+                        className={`text-[11px] px-2 py-0.5 rounded-full shrink-0 ${
                           isSelected
                             ? "bg-white/20 text-white"
                             : "bg-[var(--color-background)] text-[var(--color-text-secondary)]"
                         }`}
                       >
-                        {categoryCounts[catKey] || 0}
+                        {cat.count}
                       </span>
                     </button>
                   );
@@ -610,7 +735,7 @@ function LibraryContent() {
 
                 {selectedCategory !== "all" && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-secondary)] text-[var(--color-primary)] font-semibold">
-                    Category: {CATEGORIES[selectedCategory].label}
+                    Category: {activeCategoryLabel}
                     <button
                       onClick={() => setSelectedCategory("all")}
                       className="cursor-pointer hover:opacity-75"
@@ -669,11 +794,31 @@ function LibraryContent() {
               )}
             </div>
 
-            {/* Prompt Cards Grid / List */}
-            {filteredPrompts.length === 0 ? (
+            {/* Prompt Cards Grid / List / Skeleton */}
+            {isLoading && basePrompts.length === 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-64 rounded-2xl bg-white/70 animate-pulse border border-[var(--color-border)] p-6 space-y-4"
+                  >
+                    <div className="flex gap-2">
+                      <div className="h-5 w-24 bg-gray-200 rounded-full" />
+                      <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                    </div>
+                    <div className="h-6 w-3/4 bg-gray-200 rounded-lg" />
+                    <div className="space-y-2 pt-2">
+                      <div className="h-3 w-full bg-gray-100 rounded" />
+                      <div className="h-3 w-5/6 bg-gray-100 rounded" />
+                      <div className="h-3 w-4/6 bg-gray-100 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredPrompts.length === 0 ? (
               <EmptyState
                 title="No prompts match your filter"
-                description="We couldn't find any prompts matching your exact combination. Try clearing your filters or searching for terms like 'acne', 'gut', 'macros', or 'hormones'."
+                description="We couldn't find any prompts matching your exact combination. Try clearing your filters or searching for terms like 'fat loss', 'client', or 'meal'."
                 actionText="Reset All Filters"
                 onAction={clearAllFilters}
               />

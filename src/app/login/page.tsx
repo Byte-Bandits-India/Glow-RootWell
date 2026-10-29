@@ -100,7 +100,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/woman-with-long-hair.jpg"
-            alt="Rootwell member wellness journey"
+            alt="Avyaya member wellness journey"
             fill
             priority
             sizes="50vw"
@@ -115,12 +115,14 @@ export default function LoginPage() {
         {/* Top Header / Brand Link */}
         <div className="relative z-10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold">
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-                <path d="M12 22c0-6 1-10 8-16-1 7-3 11-8 16zM12 22C12 15 9 11 3 8c0 6 3 10 9 14z" />
-              </svg>
-            </span>
-            <span className="font-heading font-bold text-2xl tracking-tight text-white">Rootwell</span>
+            <Image
+              src="/Avyaya_Logo.png"
+              alt="Avyaya"
+              width={160}
+              height={44}
+              className="h-9 w-auto object-contain"
+              priority
+            />
           </Link>
         </div>
 
@@ -143,12 +145,13 @@ export default function LoginPage() {
             {/* Mobile shows logo */}
             <div className="lg:hidden">
               <Link href="/" className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-full bg-[#0B2C13] text-[var(--color-accent)] flex items-center justify-center font-bold">
-                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
-                    <path d="M12 22c0-6 1-10 8-16-1 7-3 11-8 16zM12 22C12 15 9 11 3 8c0 6 3 10 9 14z" />
-                  </svg>
-                </span>
-                <span className="font-heading font-bold text-xl text-[#0B2C13]">Rootwell</span>
+                <Image
+                  src="/Avyaya_Logo.png"
+                  alt="Avyaya"
+                  width={140}
+                  height={38}
+                  className="h-8 w-auto object-contain rounded-lg bg-[#0B2C13] px-2 py-1"
+                />
               </Link>
             </div>
 

@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
         .where(eq(users.id, userId));
     } else {
       userId = crypto.randomUUID();
-      finalName = name || "Rootwell Member";
+      finalName = name || "Avyaya Member";
 
       // Insert new Google user into SQLite
       await db.insert(users).values({

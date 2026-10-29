@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Container } from "./Container";
 import { Button } from "../ui/Button";
@@ -85,24 +86,14 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
             href="/"
             className="flex items-center gap-2.5 font-bold text-xl md:text-2xl tracking-tight text-inherit group select-none"
           >
-            <span
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 ${
-                isDark
-                  ? "bg-[rgba(16,185,130,0.18)] text-[var(--color-accent)]"
-                  : "bg-[var(--color-primary)] text-[var(--color-accent)]"
-              }`}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="w-5 h-5 fill-current"
-                aria-hidden="true"
-              >
-                <path d="M12 22c0-6 1-10 8-16-1 7-3 11-8 16zM12 22C12 15 9 11 3 8c0 6 3 10 9 14z" />
-              </svg>
-            </span>
-            <span className="font-heading font-bold text-2xl tracking-tight">
-              Rootwell
-            </span>
+            <Image
+              src="/Avyaya_Logo.png"
+              alt="Avyaya"
+              width={160}
+              height={44}
+              className="h-8 sm:h-9 md:h-12 w-auto object-contain"
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -294,12 +285,13 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "dark" }) => {
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2.5 group"
             >
-              <span className="w-8 h-8 rounded-full bg-[var(--color-accent)] text-[#0B2C13] flex items-center justify-center font-bold">
-                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-                  <path d="M12 22c0-6 1-10 8-16-1 7-3 11-8 16zM12 22C12 15 9 11 3 8c0 6 3 10 9 14z" />
-                </svg>
-              </span>
-              <span className="font-heading font-bold text-xl text-white">Rootwell</span>
+              <Image
+                src="/Avyaya_Logo.png"
+                alt="Avyaya"
+                width={130}
+                height={36}
+                className="h-8 w-auto object-contain"
+              />
             </Link>
             <button
               onClick={() => setMobileMenuOpen(false)}

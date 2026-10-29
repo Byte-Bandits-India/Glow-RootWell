@@ -33,8 +33,8 @@ interface ComparisonScenario {
     method: string;
     outcome: string;
   };
-  rootwellPrompt: string;
-  rootwellHighlights: {
+  avyayaPrompt: string;
+  avyayaHighlights: {
     context: string;
     method: string;
     outcome: string;
@@ -52,9 +52,9 @@ const COMPARISON_SCENARIOS: ComparisonScenario[] = [
       method: "Summarizes generic internet blog recommendations",
       outcome: "Recommends high-fiber foods that worsen SIBO or FODMAP issues",
     },
-    rootwellPrompt:
+    avyayaPrompt:
       "Act as a functional gastroenterology specialist. Before recommending any routine, conduct a 4-point diagnostic intake on bloating transit time, FODMAP tolerance, meal spacing, and stress biomarkers. Once answered, output a phased 14-day elimination protocol with safe ingredient substitutions.",
-    rootwellHighlights: {
+    avyayaHighlights: {
       context: "Conducts 4-point intake on transit time & food reactions first",
       method: "Differentiates upper vs lower GI transit and enzyme deficiency",
       outcome: "Personalized 14-day protocol with safe swaps and physician notes",
@@ -70,9 +70,9 @@ const COMPARISON_SCENARIOS: ComparisonScenario[] = [
       method: "Pulls product lists without checking pH or lipid ratios",
       outcome: "Risks combining conflicting actives that further damage barrier integrity",
     },
-    rootwellPrompt:
+    avyayaPrompt:
       "Act as a clinical aesthetician and barrier repair specialist. Conduct a 4-point intake on active ingredients (retinoids, AHA/BHA), stinging triggers, climate, and barrier pH history before prescribing an AM/PM routine.",
-    rootwellHighlights: {
+    avyayaHighlights: {
       context: "Audits active ingredients, pH balance, and exfoliation history",
       method: "Structures lipid-replenishing ceramides, cholesterol, and fatty acids",
       outcome: "Phased 4-week barrier restoration protocol with contraindication warnings",
@@ -88,9 +88,9 @@ const COMPARISON_SCENARIOS: ComparisonScenario[] = [
       method: "Imposes generic caloric deficit without recovery metrics",
       outcome: "Rapid metabolic adaptation, hunger spikes, and muscle loss",
     },
-    rootwellPrompt:
+    avyayaPrompt:
       "Act as a clinical sports nutritionist. Before calculating targets, conduct an intake evaluating training volume, sleep biofeedback, hunger signals, and diet history to formulate a progressive, muscle-sparing metabolic protocol.",
-    rootwellHighlights: {
+    avyayaHighlights: {
       context: "Integrates training load, recovery metrics, and metabolic history",
       method: "Calculates progressive carbohydrate cycling and leucine threshold",
       outcome: "Sustainable body recomposition protocol with automated refeed guidelines",
@@ -133,7 +133,7 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
           <div className="max-w-3xl space-y-5">
 
             <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-normal text-white leading-[1.08] tracking-tight">
-              How Rootwell turns standard AI into your wellness team.
+              How Avyaya turns standard AI into your wellness team.
             </h1>
 
             <p className="text-base sm:text-lg lg:text-xl text-[var(--color-secondary)]/90 leading-relaxed max-w-2xl">
@@ -186,7 +186,7 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
               The difference is in the intake
             </h2>
             <p className="text-sm sm:text-base text-[var(--color-text-secondary)] leading-relaxed">
-              When you prompt without structure, AI guesses your biology. Rootwell prompts instruct the AI to conduct a structured diagnostic interview first.
+              When you prompt without structure, AI guesses your biology. Avyaya prompts instruct the AI to conduct a structured diagnostic interview first.
             </p>
           </div>
 
@@ -262,12 +262,12 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
                 </div>
               </div>
 
-              {/* Right Column: Rootwell Clinical Framework */}
+              {/* Right Column: Avyaya Clinical Framework */}
               <div className="p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-[#0B2C13] text-white relative">
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-accent)]">
-                      Rootwell Framework
+                      Avyaya Framework
                     </span>
                     <span className="text-[11px] font-semibold text-[var(--color-accent)] px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15">
                       Clinical Protocol
@@ -277,7 +277,7 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
                   {/* Monospace Query Box */}
                   <div className="bg-black/35 rounded-2xl p-4 border border-white/10 font-mono text-xs text-[var(--color-secondary)] leading-relaxed shadow-inner">
                     <span className="text-[var(--color-accent)] select-none">&gt; </span>
-                    {activeScenario.rootwellPrompt}
+                    {activeScenario.avyayaPrompt}
                   </div>
 
                   {/* Minimal Specs Breakdown */}
@@ -286,21 +286,21 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
                       <span className="font-semibold text-white shrink-0 w-28">
                         Biological Context
                       </span>
-                      <span className="text-[var(--color-secondary)]">{activeScenario.rootwellHighlights.context}</span>
+                      <span className="text-[var(--color-secondary)]">{activeScenario.avyayaHighlights.context}</span>
                     </div>
 
                     <div className="flex items-start gap-3 pb-3 border-b border-white/10">
                       <span className="font-semibold text-white shrink-0 w-28">
                         Reasoning Logic
                       </span>
-                      <span className="text-[var(--color-secondary)]">{activeScenario.rootwellHighlights.method}</span>
+                      <span className="text-[var(--color-secondary)]">{activeScenario.avyayaHighlights.method}</span>
                     </div>
 
                     <div className="flex items-start gap-3">
                       <span className="font-semibold text-white shrink-0 w-28">
                         Practical Safety
                       </span>
-                      <span className="text-[var(--color-secondary)]">{activeScenario.rootwellHighlights.outcome}</span>
+                      <span className="text-[var(--color-secondary)]">{activeScenario.avyayaHighlights.outcome}</span>
                     </div>
                   </div>
                 </div>
@@ -337,7 +337,7 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
                 See the framework in action
               </h2>
               <p className="text-sm sm:text-base text-[var(--color-text-secondary)] leading-relaxed">
-                Copy this actual Rootwell sample prompt and paste it into ChatGPT or Claude right now to experience how the AI turns into an attentive clinician.
+                Copy this actual Avyaya sample prompt and paste it into ChatGPT or Claude right now to experience how the AI turns into an attentive clinician.
               </p>
 
               <div className="space-y-3 pt-2">
@@ -441,7 +441,7 @@ Once I answer, produce a phased 4-week protocol with AM/PM routines and ingredie
                     Do I need to pay for a premium ChatGPT or Claude subscription?
                   </AccordionTrigger>
                   <AccordionContent>
-                    No. All 500+ Rootwell prompts work flawlessly on the completely free versions of ChatGPT (GPT-4o mini) and Claude 3.5 Sonnet. While paid tiers offer slightly deeper reasoning, you will get incredible results without spending a dime on AI subscriptions.
+                    No. All 500+ Avyaya prompts work flawlessly on the completely free versions of ChatGPT (GPT-4o mini) and Claude 3.5 Sonnet. While paid tiers offer slightly deeper reasoning, you will get incredible results without spending a dime on AI subscriptions.
                   </AccordionContent>
                 </AccordionItem>
 

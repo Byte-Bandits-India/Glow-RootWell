@@ -4,13 +4,14 @@ import { hasAccessToBundle } from "@/lib/plans";
 import { db, client, ensureDbInitialized } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { connection } from "next/server";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await connection();
   try {
     const { id } = await params;
     await ensureDbInitialized();
@@ -63,12 +64,12 @@ export async function GET(
     }
 
     // 3. Paid prompts require authentication and plan verification
-    const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+    const token = req.cookies?.get?.(AUTH_COOKIE_NAME)?.value;
     if (!token) {
       return NextResponse.json({
         prompt: {
           ...prompt,
-          promptText: "Unlock this clinical prompt by subscribing to Rootwell.",
+          promptText: "Unlock this clinical prompt by subscribing to Avyaya.",
         },
         hasAccess: false,
         requiredPlan: prompt.bundle,
@@ -81,7 +82,7 @@ export async function GET(
       return NextResponse.json({
         prompt: {
           ...prompt,
-          promptText: "Unlock this clinical prompt by subscribing to Rootwell.",
+          promptText: "Unlock this clinical prompt by subscribing to Avyaya.",
         },
         hasAccess: false,
         requiredPlan: prompt.bundle,
