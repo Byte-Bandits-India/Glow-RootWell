@@ -272,7 +272,7 @@ const PromptCategoryCard: React.FC<PromptCardProps> = ({
 
 export const HeroReference: React.FC = () => {
   return (
-    <section className="bg-[#FAF8F5] text-[#111813] relative overflow-hidden flex flex-col justify-start min-h-[calc(100vh-80px)] 2xl:min-h-[70%] py-6 sm:py-8 lg:py-6">
+    <section className="bg-[#FAF8F5] text-[#111813] relative overflow-hidden flex flex-col justify-start min-h-[calc(100vh-80px)] 4xl:min-h-[70%] py-6 sm:py-8 lg:py-6">
       {/* Background Aura */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] sm:w-[1000px] h-[500px] rounded-full pointer-events-none opacity-50"
