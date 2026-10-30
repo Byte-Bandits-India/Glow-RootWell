@@ -40,8 +40,6 @@ const TESTIMONIAL_CARDS: TestimonialCardItem[] = [
     name: "Dr. Raina Khatri Tandon",
     role: "CEO, Right2rise · Mumbai",
     avatar: "/doctor.jpg",
-    photoUrl: "/doctor3.jpg",
-    isVideo: true,
     certificateUrl: "/testimonials/2.png",
     quote:
       "Her calm, composed listening and the way she patiently understood me helped me learn how daily structured intake of nutrients in regular food—without additional supplements—is great to add in my routine. I advise and recommend her strongly to all who want a conscious healthy diet and living.",
@@ -72,8 +70,6 @@ const TESTIMONIAL_CARDS: TestimonialCardItem[] = [
     name: "Brig Sushil Bhasin",
     role: "Director, S B Consulting · Mumbai",
     avatar: "/doctor2.jpg",
-    photoUrl: "/doctor2.jpg",
-    isVideo: true,
     certificateUrl: "/testimonials/5.png",
     quote:
       "What I really like about Swathi is that she is not just a nutritionist. She has expertise in sports nutrition as well as derma nutrition, giving her a balanced perspective. She understands the connection between what happens inside the body and what shows up externally in skin and hair. Having understood her approach, I decided to take up her three-month Gut Reset Programme myself.",
