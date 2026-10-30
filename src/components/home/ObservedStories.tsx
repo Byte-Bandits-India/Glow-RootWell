@@ -92,7 +92,7 @@ export const ObservedStories: React.FC = () => {
           {/* Centered Doctor Portrait Card for Mobile */}
           <div className="relative w-full max-w-[340px] sm:max-w-[420px] aspect-[4/3] mx-auto rounded-2xl overflow-hidden shadow-sm border border-[#D5D3DC] bg-white">
             <Image
-              src="/croped_img.png"
+              src="/girl.webp"
               alt="Clinical wellness expert"
               fill
               className="object-cover object-top"
