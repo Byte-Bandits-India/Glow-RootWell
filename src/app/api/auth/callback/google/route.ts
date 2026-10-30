@@ -129,8 +129,18 @@ export async function GET(req: NextRequest) {
       provider: "google",
     });
 
-    // 5. Set session cookie and redirect to prompt library
-    const response = NextResponse.redirect(new URL("/library", req.url));
+    // 5. Set session cookie and redirect to requested return target or home
+    const returnCookie = req.cookies.get("google_oauth_redirect")?.value;
+    const targetUrl =
+      returnCookie &&
+      returnCookie.startsWith("/") &&
+      !returnCookie.startsWith("//") &&
+      !returnCookie.startsWith("/login") &&
+      !returnCookie.startsWith("/signup")
+        ? returnCookie
+        : "/";
+
+    const response = NextResponse.redirect(new URL(targetUrl, req.url));
 
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
@@ -142,8 +152,9 @@ export async function GET(req: NextRequest) {
       maxAge: 30 * 24 * 60 * 60,
     });
 
-    // Clean up temporary OAuth state cookie
+    // Clean up temporary OAuth cookies
     response.cookies.delete("google_oauth_state");
+    response.cookies.delete("google_oauth_redirect");
 
     return response;
   } catch (error) {

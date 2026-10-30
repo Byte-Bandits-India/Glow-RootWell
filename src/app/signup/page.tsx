@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Eye,
   EyeOff,
@@ -17,8 +17,49 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-export default function SignUpPage() {
+function SignUpContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { refreshUser } = useAuth();
+
+  const rawRedirect =
+    searchParams.get("redirect") ||
+    searchParams.get("next") ||
+    searchParams.get("returnUrl") ||
+    searchParams.get("from");
+
+  const [redirectTarget, setRedirectTarget] = useState<string>("/");
+
+  useEffect(() => {
+    // 1. Explicit query param (safe relative URL)
+    if (
+      rawRedirect &&
+      rawRedirect.startsWith("/") &&
+      !rawRedirect.startsWith("//") &&
+      !rawRedirect.startsWith("/login") &&
+      !rawRedirect.startsWith("/signup")
+    ) {
+      setRedirectTarget(rawRedirect);
+      return;
+    }
+
+    // 2. Same-origin document.referrer
+    if (typeof window !== "undefined" && document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (refUrl.origin === window.location.origin) {
+          const path = refUrl.pathname + refUrl.search;
+          if (path && !path.startsWith("/login") && !path.startsWith("/signup")) {
+            setRedirectTarget(path);
+            return;
+          }
+        }
+      } catch {}
+    }
+
+    // 3. Fallback to homepage
+    setRedirectTarget("/");
+  }, [rawRedirect]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -92,8 +133,6 @@ export default function SignUpPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const { refreshUser } = useAuth();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -124,7 +163,7 @@ export default function SignUpPage() {
       await refreshUser();
 
       setTimeout(() => {
-        router.push("/library");
+        router.push(redirectTarget);
         router.refresh();
       }, 900);
     } catch {
@@ -134,7 +173,10 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = () => {
-    window.location.href = "/api/auth/google";
+    const target = redirectTarget && redirectTarget !== "/" ? redirectTarget : "";
+    window.location.href = target
+      ? `/api/auth/google?redirect=${encodeURIComponent(target)}`
+      : "/api/auth/google";
   };
 
   return (
@@ -203,7 +245,7 @@ export default function SignUpPage() {
             {/* Desktop shows back to website link */}
             <div className="hidden lg:block">
               <Link
-                href="/"
+                href={redirectTarget || "/"}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#526454] hover:text-[#0B2C13] transition-colors group"
               >
                 <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
@@ -212,7 +254,11 @@ export default function SignUpPage() {
             </div>
 
             <Link
-              href="/login"
+              href={
+                redirectTarget && redirectTarget !== "/"
+                  ? `/login?redirect=${encodeURIComponent(redirectTarget)}`
+                  : "/login"
+              }
               className="text-xs font-semibold text-[#0B2C13] hover:underline shrink-0"
             >
               <span className="hidden sm:inline">Already registered? </span>Log in
@@ -502,7 +548,11 @@ export default function SignUpPage() {
             <p className="text-xs text-[#526454]">
               Already have an account?{" "}
               <Link
-                href="/login"
+                href={
+                  redirectTarget && redirectTarget !== "/"
+                    ? `/login?redirect=${encodeURIComponent(redirectTarget)}`
+                    : "/login"
+                }
                 className="font-semibold text-[#0B2C13] hover:underline"
               >
                 Sign in here
@@ -512,5 +562,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F0EFE7]" />}>
+      <SignUpContent />
+    </Suspense>
   );
 }

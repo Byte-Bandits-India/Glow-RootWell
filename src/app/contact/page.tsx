@@ -82,41 +82,71 @@ export default function ContactPage() {
     message: "",
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedData, setSubmittedData] = useState<FormState | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    setIsSubmitting(true);
 
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
+    const trimmedName = form.name.trim();
+    const trimmedEmail = form.email.trim();
+    const trimmedMessage = form.message.trim();
 
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(
-          data?.error || "We could not deliver your message right now. Please try again."
-        );
-      }
-
-      setIsSubmitted(true);
-    } catch (err: any) {
-      setErrorMessage(
-        err.message ||
-          "An unexpected error occurred while sending your message. Please try again or reach out to support@avyaya.com."
-      );
-    } finally {
-      setIsSubmitting(false);
+    if (!trimmedName || trimmedName.length < 2) {
+      setErrorMessage("Please enter your name (minimum 2 characters).");
+      return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+
+    if (!trimmedMessage || trimmedMessage.length < 5) {
+      setErrorMessage("Please provide a detailed message (minimum 5 characters).");
+      return;
+    }
+
+    const payload: FormState = {
+      name: trimmedName,
+      email: trimmedEmail,
+      category: form.category,
+      aiTool: form.aiTool,
+      message: trimmedMessage,
+    };
+
+    // Immediate response to user: optimistic confirmation screen
+    setSubmittedData(payload);
+    setIsSubmitted(true);
+    setForm({
+      name: "",
+      email: "",
+      category: "General Support",
+      aiTool: "ChatGPT",
+      message: "",
+    });
+
+    // Asynchronous dispatch in the background with keepalive
+    fetch("/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          console.warn("[Contact Form] Background dispatch status:", res.status, data);
+        }
+      })
+      .catch((err) => {
+        console.error("[Contact Form] Background dispatch failed:", err);
+      });
   };
 
   const handleReset = () => {
@@ -127,6 +157,7 @@ export default function ContactPage() {
       aiTool: "ChatGPT",
       message: "",
     });
+    setSubmittedData(null);
     setErrorMessage(null);
     setIsSubmitted(false);
   };
@@ -325,8 +356,8 @@ export default function ContactPage() {
             {/* Right Column: Contact Form */}
             <div className="lg:col-span-7">
               <div className="bg-white rounded-3xl p-6 sm:p-9 shadow-md border border-gray-100">
-                {isSubmitted ? (
-                  <div className="py-10 text-center space-y-5">
+                {isSubmitted && submittedData ? (
+                  <div className="py-10 text-center space-y-5 animate-in fade-in duration-200">
                     <div className="w-16 h-16 rounded-full bg-[#E8F5E9] text-[#1E7A66] flex items-center justify-center mx-auto shadow-xs">
                       <Check className="w-8 h-8 stroke-[2.5]" />
                     </div>
@@ -335,7 +366,7 @@ export default function ContactPage() {
                         Message Received!
                       </h3>
                       <p className="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto leading-relaxed">
-                        Thank you, <strong>{form.name}</strong>. We&apos;ve logged your inquiry under <em>{form.category}</em>. A confirmation receipt has been emailed to <strong>{form.email}</strong>, and our administration team has been notified.
+                        Thank you, <strong>{submittedData.name}</strong>. We&apos;ve logged your inquiry under <em>{submittedData.category}</em>. A confirmation receipt has been emailed to <strong>{submittedData.email}</strong>, and our administration team has been notified.
                       </p>
                     </div>
 
@@ -350,7 +381,7 @@ export default function ContactPage() {
                         onClick={handleReset}
                         variant="primary"
                         size="md"
-                        className="rounded-full text-white bg-[#0B2C13] hover:bg-[#102B18] shadow-sm px-6"
+                        className="rounded-full text-white bg-[#0B2C13] hover:bg-[#102B18] shadow-sm px-6 cursor-pointer"
                       >
                         Send Another Message
                       </Button>
@@ -479,19 +510,10 @@ export default function ContactPage() {
                         type="submit"
                         variant="accent"
                         size="lg"
-                        disabled={isSubmitting}
-                        className="w-full justify-center bg-[var(--color-accent)] !text-white font-semibold py-3.5 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-sm cursor-pointer disabled:opacity-70"
-                        rightIcon={
-                          isSubmitting ? (
-                            <Clock className="w-4 h-4 animate-spin text-white" />
-                          ) : (
-                            <Send className="w-4 h-4 text-white" />
-                          )
-                        }
+                        className="w-full justify-center bg-[var(--color-accent)] !text-white font-semibold py-3.5 rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-sm cursor-pointer"
+                        rightIcon={<Send className="w-4 h-4 text-white" />}
                       >
-                        <span className="text-white">
-                          {isSubmitting ? "Dispatching Message..." : "Send Message"}
-                        </span>
+                        <span className="text-white">Send Message</span>
                       </Button>
                     </div>
                   </form>

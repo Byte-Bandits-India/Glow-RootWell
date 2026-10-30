@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Container } from "./Container";
 import { Button } from "../ui/Button";
 import { useAuth } from "@/context/AuthContext";
@@ -21,7 +21,24 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "light" }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
+
+  // Dynamic login handler preserving current page + query parameters
+  const handleLoginClick = (e: React.MouseEvent) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+      return;
+    }
+    e.preventDefault();
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname + window.location.search;
+      if (currentPath && !currentPath.startsWith("/login") && !currentPath.startsWith("/signup")) {
+        router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+        return;
+      }
+    }
+    router.push("/login");
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -228,6 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "light" }) => {
               /* Unauthenticated: Gradient "Log in" button matching reference image */
               <Button
                 href="/login"
+                onClick={handleLoginClick}
                 variant="accent"
                 size="sm"
                 className="whitespace-nowrap shrink-0 bg-gradient-to-b from-[#0FB67E] via-[#129A5A] to-[#13733D] hover:brightness-110 text-white font-medium text-xs md:text-sm px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all border border-[#0FB67E]/30 cursor-pointer"
@@ -262,6 +280,7 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "light" }) => {
             ) : (
               <Link
                 href="/login"
+                onClick={handleLoginClick}
                 className="text-xs font-medium text-white px-3.5 py-1.5 rounded-xl bg-gradient-to-b from-[#0FB67E] via-[#129A5A] to-[#13733D] hover:brightness-110 transition-all shadow-sm border border-[#0FB67E]/30"
               >
                 Log in
@@ -459,7 +478,10 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = "light" }) => {
                     size="md"
                     fullWidth
                     className="bg-gradient-to-b from-[#0FB67E] via-[#129A5A] to-[#13733D] hover:brightness-110 text-white font-medium justify-center text-sm rounded-xl shadow-sm border border-[#0FB67E]/30"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      handleLoginClick(e);
+                    }}
                   >
                     Log in
                   </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X, CheckCircle2 } from "lucide-react";
@@ -97,8 +97,9 @@ const TESTIMONIAL_CARDS: TestimonialCardItem[] = [
   },
 ];
 
-// Duplicate cards for seamless 100% infinite continuous loop
-const MARQUEE_CARDS = [...TESTIMONIAL_CARDS, ...TESTIMONIAL_CARDS];
+// 4 duplicates of cards for continuous infinite bidirectional dragging and scrolling
+const MARQUEE_SETS = 4;
+const MARQUEE_CARDS = Array.from({ length: MARQUEE_SETS }).flatMap(() => TESTIMONIAL_CARDS);
 
 // Classic Twitter bird icon matching the reference image layout
 function TwitterBirdIcon({ className = "w-3.5 h-3.5 text-black" }: { className?: string }) {
@@ -124,6 +125,164 @@ function RatingStars({ color = "text-[#EAB308]" }: { color?: string }) {
 
 export const TestimonialsSection: React.FC = () => {
   const [activeModalItem, setActiveModalItem] = useState<TestimonialCardItem | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const isDraggingRef = useRef(false);
+  const isHoveredRef = useRef(false);
+  const startXRef = useRef(0);
+  const lastXRef = useRef(0);
+  const currentXRef = useRef(0);
+  const velocityRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+  const setWidthRef = useRef(0);
+  const rafIdRef = useRef<number | null>(null);
+  const activeModalItemRef = useRef<TestimonialCardItem | null>(null);
+
+  useEffect(() => {
+    activeModalItemRef.current = activeModalItem;
+  }, [activeModalItem]);
+
+  const measureWidth = () => {
+    if (trackRef.current) {
+      const sw = trackRef.current.scrollWidth;
+      if (sw > 0) {
+        setWidthRef.current = sw / MARQUEE_SETS;
+      }
+    }
+  };
+
+  useEffect(() => {
+    measureWidth();
+    if (setWidthRef.current > 0) {
+      currentXRef.current = -setWidthRef.current;
+      if (trackRef.current) {
+        trackRef.current.style.transform = `translate3d(${currentXRef.current}px, 0, 0)`;
+      }
+    }
+
+    const handleResize = () => {
+      const prevSetWidth = setWidthRef.current;
+      measureWidth();
+      if (prevSetWidth > 0 && setWidthRef.current > 0) {
+        currentXRef.current = (currentXRef.current / prevSetWidth) * setWidthRef.current;
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    const animate = () => {
+      if (trackRef.current) {
+        if (setWidthRef.current === 0) {
+          measureWidth();
+          if (setWidthRef.current > 0) {
+            currentXRef.current = -setWidthRef.current;
+          }
+        }
+
+        const setWidth = setWidthRef.current;
+        if (setWidth > 0) {
+          if (!isDraggingRef.current) {
+            if (Math.abs(velocityRef.current) > 0.05) {
+              currentXRef.current += velocityRef.current;
+              velocityRef.current *= 0.95; // Smooth momentum decay
+            } else {
+              velocityRef.current = 0;
+              // If not hovered and modal is closed, auto-scroll left smoothly
+              if (!isHoveredRef.current && !activeModalItemRef.current) {
+                currentXRef.current -= 0.75;
+              }
+            }
+
+            // Seamless bidirectional infinite wrapping
+            while (currentXRef.current <= -2 * setWidth) {
+              currentXRef.current += setWidth;
+            }
+            while (currentXRef.current > -setWidth) {
+              currentXRef.current -= setWidth;
+            }
+
+            trackRef.current.style.transform = `translate3d(${currentXRef.current}px, 0, 0)`;
+          }
+        }
+      }
+
+      rafIdRef.current = requestAnimationFrame(animate);
+    };
+
+    rafIdRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    isDraggingRef.current = true;
+    setIsDragging(true);
+    startXRef.current = e.clientX;
+    lastXRef.current = e.clientX;
+    velocityRef.current = 0;
+    hasDraggedRef.current = false;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current || !trackRef.current) return;
+
+    const clientX = e.clientX;
+    const deltaX = clientX - lastXRef.current;
+    lastXRef.current = clientX;
+
+    if (Math.abs(clientX - startXRef.current) > 5) {
+      hasDraggedRef.current = true;
+    }
+
+    currentXRef.current += deltaX;
+    velocityRef.current = velocityRef.current * 0.4 + deltaX * 0.6;
+
+    const setWidth = setWidthRef.current;
+    if (setWidth > 0) {
+      while (currentXRef.current <= -2 * setWidth) {
+        currentXRef.current += setWidth;
+      }
+      while (currentXRef.current > -setWidth) {
+        currentXRef.current -= setWidth;
+      }
+    }
+
+    trackRef.current.style.transform = `translate3d(${currentXRef.current}px, 0, 0)`;
+  };
+
+  const handlePointerUp = (e?: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    setIsDragging(false);
+
+    if (e) {
+      try {
+        if (e.currentTarget?.hasPointerCapture(e.pointerId)) {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+      } catch {}
+    }
+
+    // Clamp flick velocity
+    velocityRef.current = Math.max(-18, Math.min(18, velocityRef.current));
+
+    // Suppress trailing click event if dragged
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 60);
+  };
 
   // Prevent background scrolling and pause Lenis while modal is open
   useEffect(() => {
@@ -181,126 +340,159 @@ export const TestimonialsSection: React.FC = () => {
       </Container>
 
       {/* 2. Continuous Horizontal Marquee Runway with Left/Right Edge Gradient Masks */}
-      <div className="relative w-full overflow-hidden">
-        {/* Continuous Scrolling Track (Pauses on Hover for Easy Reading / Clicking) */}
+      <div
+        ref={containerRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onMouseEnter={() => {
+          isHoveredRef.current = true;
+        }}
+        onMouseLeave={() => {
+          isHoveredRef.current = false;
+          if (isDraggingRef.current) {
+            handlePointerUp();
+          }
+        }}
+        style={{ touchAction: "pan-y" }}
+        className={`relative w-full overflow-hidden select-none py-3 ${
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        }`}
+      >
+        {/* Left Edge Gradient Fade */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-r from-[#F2F6ED] to-transparent z-20" />
+
+        {/* Right Edge Gradient Fade */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-l from-[#F2F6ED] to-transparent z-20" />
+
+        {/* Continuous Scrolling Draggable Track */}
         <div
-          className={`flex overflow-hidden py-3 ${
-            activeModalItem ? "[animation-play-state:paused]" : ""
-          }`}
+          ref={trackRef}
+          className="flex gap-4 sm:gap-5 items-stretch will-change-transform"
+          style={{ width: "max-content" }}
         >
-          <div className="animate-marquee-left gap-4 sm:gap-5 items-stretch">
-            {MARQUEE_CARDS.map((card, idx) => {
-              // Video / Featured Photo Doctor Card (doctor.jpg / doctor2.jpg)
-              if (card.isVideo && card.photoUrl) {
-                return (
-                  <div
-                    key={`${card.id}-${idx}`}
-                    onClick={() => setActiveModalItem(card)}
-                    className="w-[260px] sm:w-[290px] md:w-[310px] shrink-0 h-[310px] sm:h-[330px] relative group rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.07)] cursor-pointer flex flex-col justify-between p-5 select-none transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] hover:-translate-y-1"
-                  >
-                    {/* Doctor High-Res Photo Background */}
-                    <Image
-                      src={card.photoUrl}
-                      alt={card.name}
-                      fill
-                      sizes="320px"
-                      priority={idx < 4}
-                      className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                    />
-
-                    {/* Gradient Overlay for Top/Bottom Legibility */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/60 pointer-events-none" />
-
-                    {/* Top Row: Doctor Name & Role + Twitter Bird in White Squircle */}
-                    <div className="relative z-10 flex items-start justify-between gap-3">
-                      <div className="space-y-0.5 min-w-0 pr-1">
-                        <h3 className="font-bold text-[13px] sm:text-[14px] text-white leading-tight drop-shadow-xs truncate">
-                          {card.name}
-                        </h3>
-                        <p className="text-[11px] text-white/80 font-normal drop-shadow-xs truncate">
-                          {card.role}
-                        </p>
-                      </div>
-
-                      <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-black shadow-xs shrink-0">
-                        <TwitterBirdIcon className="w-3 h-3 text-black" />
-                      </div>
-                    </div>
-
-                    {/* Center Circular White Play Button */}
-                    <div className="relative z-10 my-auto flex items-center justify-center py-2">
-                      <div className="w-11 h-11 rounded-full bg-white text-black shadow-lg flex items-center justify-center group-hover:scale-115 active:scale-95 transition-transform duration-200">
-                        <svg
-                          className="w-4 h-4 fill-current text-black ml-0.5"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* Bottom Row: 5 Gold Stars + Date */}
-                    <div className="relative z-10 flex items-center justify-between pt-3 border-t border-white/20">
-                      <RatingStars />
-                      <span className="text-[11px] font-medium text-white/90">
-                        {card.date}
-                      </span>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Standard White Quote Card
+          {MARQUEE_CARDS.map((card, idx) => {
+            // Video / Featured Photo Doctor Card (doctor.jpg / doctor2.jpg)
+            if (card.isVideo && card.photoUrl) {
               return (
                 <div
                   key={`${card.id}-${idx}`}
-                  onClick={() => setActiveModalItem(card)}
-                  className="w-[260px] sm:w-[290px] md:w-[310px] shrink-0 h-[310px] sm:h-[330px] bg-white rounded-2xl sm:rounded-3xl p-5 shadow-[0_6px_24px_rgba(0,0,0,0.05)] border border-gray-100/90 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_12px_28px_rgba(0,0,0,0.09)] hover:-translate-y-1 select-none cursor-pointer"
+                  onClick={() => {
+                    if (!hasDraggedRef.current) {
+                      setActiveModalItem(card);
+                    }
+                  }}
+                  className="w-[260px] sm:w-[290px] md:w-[310px] shrink-0 h-[310px] sm:h-[330px] relative group rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.07)] cursor-pointer flex flex-col justify-between p-5 select-none transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
                 >
-                  {/* Top Row: Avatar + Name & Role + Twitter Bird Icon */}
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="relative w-9 h-9 rounded-full overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
-                        <Image
-                          src={card.avatar}
-                          alt={card.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="space-y-0.5 min-w-0 pr-1">
-                        <h3 className="font-bold text-[13px] sm:text-[14px] text-gray-900 leading-tight truncate">
-                          {card.name}
-                        </h3>
-                        <p className="text-[11px] text-gray-500 font-normal truncate">
-                          {card.role}
-                        </p>
-                      </div>
+                  {/* Doctor High-Res Photo Background */}
+                  <Image
+                    src={card.photoUrl}
+                    alt={card.name}
+                    fill
+                    sizes="320px"
+                    priority={idx < 4}
+                    draggable={false}
+                    className="object-cover object-top group-hover:scale-105 transition-transform duration-500 pointer-events-none select-none"
+                  />
+
+                  {/* Gradient Overlay for Top/Bottom Legibility */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/60 pointer-events-none" />
+
+                  {/* Top Row: Doctor Name & Role + Twitter Bird in White Squircle */}
+                  <div className="relative z-10 flex items-start justify-between gap-3">
+                    <div className="space-y-0.5 min-w-0 pr-1">
+                      <h3 className="font-bold text-[13px] sm:text-[14px] text-white leading-tight drop-shadow-xs truncate">
+                        {card.name}
+                      </h3>
+                      <p className="text-[11px] text-white/80 font-normal drop-shadow-xs truncate">
+                        {card.role}
+                      </p>
                     </div>
 
-                    <div className="text-gray-700 pt-0.5 shrink-0">
-                      <TwitterBirdIcon className="w-3.5 h-3.5 text-black" />
+                    <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-black shadow-xs shrink-0">
+                      <TwitterBirdIcon className="w-3 h-3 text-black" />
                     </div>
                   </div>
 
-                  {/* Middle: Double quoted text */}
-                  <div className="my-auto py-2">
-                    <p className="text-[12.5px] sm:text-[13px] font-medium text-gray-800 leading-[1.55] line-clamp-4">
-                      &ldquo;{card.quote}&rdquo;
-                    </p>
+                  {/* Center Circular White Play Button */}
+                  <div className="relative z-10 my-auto flex items-center justify-center py-2">
+                    <div className="w-11 h-11 rounded-full bg-white text-black shadow-lg flex items-center justify-center group-hover:scale-115 active:scale-95 transition-transform duration-200">
+                      <svg
+                        className="w-4 h-4 fill-current text-black ml-0.5"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
                   </div>
 
                   {/* Bottom Row: 5 Gold Stars + Date */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="relative z-10 flex items-center justify-between pt-3 border-t border-white/20">
                     <RatingStars />
-                    <span className="text-[11px] font-medium text-gray-400">
+                    <span className="text-[11px] font-medium text-white/90">
                       {card.date}
                     </span>
                   </div>
                 </div>
               );
-            })}
-          </div>
+            }
+
+            // Standard White Quote Card
+            return (
+              <div
+                key={`${card.id}-${idx}`}
+                onClick={() => {
+                  if (!hasDraggedRef.current) {
+                    setActiveModalItem(card);
+                  }
+                }}
+                className="w-[260px] sm:w-[290px] md:w-[310px] shrink-0 h-[310px] sm:h-[330px] bg-white rounded-2xl sm:rounded-3xl p-5 shadow-[0_6px_24px_rgba(0,0,0,0.05)] border border-gray-100/90 flex flex-col justify-between transition-shadow duration-300 hover:shadow-[0_12px_28px_rgba(0,0,0,0.09)] select-none cursor-pointer"
+              >
+                {/* Top Row: Avatar + Name & Role + Twitter Bird Icon */}
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="relative w-9 h-9 rounded-full overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
+                      <Image
+                        src={card.avatar}
+                        alt={card.name}
+                        fill
+                        draggable={false}
+                        className="object-cover pointer-events-none select-none"
+                      />
+                    </div>
+                    <div className="space-y-0.5 min-w-0 pr-1">
+                      <h3 className="font-bold text-[13px] sm:text-[14px] text-gray-900 leading-tight truncate">
+                        {card.name}
+                      </h3>
+                      <p className="text-[11px] text-gray-500 font-normal truncate">
+                        {card.role}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-gray-700 pt-0.5 shrink-0">
+                    <TwitterBirdIcon className="w-3.5 h-3.5 text-black" />
+                  </div>
+                </div>
+
+                {/* Middle: Double quoted text */}
+                <div className="my-auto py-2">
+                  <p className="text-[12.5px] sm:text-[13px] font-medium text-gray-800 leading-[1.55] line-clamp-4">
+                    &ldquo;{card.quote}&rdquo;
+                  </p>
+                </div>
+
+                {/* Bottom Row: 5 Gold Stars + Date */}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <RatingStars />
+                  <span className="text-[11px] font-medium text-gray-400">
+                    {card.date}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

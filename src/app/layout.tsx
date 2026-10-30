@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   title: "Avyaya – The wellness prompt library",
   description:
     "500+ expert-written prompts for skin, gut, nutrition and fitness. Works with ChatGPT, Claude, Gemini and any AI.",
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
   keywords: [
     "wellness prompts",
     "healthcare AI",
@@ -25,6 +32,21 @@ export const metadata: Metadata = {
       "500+ expert-written prompts for skin, gut, nutrition and fitness. Works with ChatGPT, Claude, Gemini and any AI.",
     siteName: "Avyaya",
     type: "website",
+    images: [
+      {
+        url: "/openGraph.png",
+        width: 1200,
+        height: 630,
+        alt: "Avyaya – The wellness prompt library",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Avyaya – The wellness prompt library",
+    description:
+      "500+ expert-written prompts for skin, gut, nutrition and fitness. Works with ChatGPT, Claude, Gemini and any AI.",
+    images: ["/openGraph.png"],
   },
 };
 
@@ -43,6 +65,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="shortcut icon" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/favicon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

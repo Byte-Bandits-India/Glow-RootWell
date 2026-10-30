@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
   const redirectUri =
     process.env.GOOGLE_REDIRECT_URI ||
     `${req.nextUrl.origin}/api/auth/callback/google`;
+  const rawReturnTo = req.nextUrl.searchParams.get("redirect") || "/";
+  const safeReturnTo =
+    rawReturnTo.startsWith("/") &&
+    !rawReturnTo.startsWith("//") &&
+    !rawReturnTo.startsWith("/login") &&
+    !rawReturnTo.startsWith("/signup")
+      ? rawReturnTo
+      : "/";
 
   // If real Google Client ID is configured in .env.local, use standard Google OAuth 2.0
   if (clientId) {
@@ -31,6 +39,14 @@ export async function GET(req: NextRequest) {
       maxAge: 10 * 60, // 10 minutes
       path: "/",
     });
+    if (safeReturnTo !== "/") {
+      response.cookies.set("google_oauth_redirect", safeReturnTo, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 10 * 60,
+        path: "/",
+      });
+    }
     return response;
   }
 
@@ -82,7 +98,7 @@ export async function GET(req: NextRequest) {
       provider: "google",
     });
 
-    const response = NextResponse.redirect(new URL("/library", req.url));
+    const response = NextResponse.redirect(new URL(safeReturnTo, req.url));
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
       value: token,
