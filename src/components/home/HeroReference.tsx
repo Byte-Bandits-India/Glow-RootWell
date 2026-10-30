@@ -20,6 +20,7 @@ const categories = [
       "skin?",
     ],
     icon: "/icons/icons/skin.png",
+    illustration: "/icons/images/Green_Serum.png",
     bg: "bg-[#f8edeb]",
     borderColor: "border-black/[0.05]",
   },
@@ -33,6 +34,7 @@ const categories = [
       "digestion?",
     ],
     icon: "/icons/icons/gut.png",
+    illustration: "/icons/images/gut_illustration.png",
     bg: "bg-[#EAF7EE]",
     borderColor: "border-[#D2EDDA]",
   },
@@ -46,6 +48,7 @@ const categories = [
       "focus.",
     ],
     icon: "/icons/icons/nutrition.png",
+    illustration: "/icons/images/nutrition_bowl.png",
     bg: "bg-[#FFF9E6]",
     borderColor: "border-[#F7EAC4]",
   },
@@ -60,6 +63,7 @@ const categories = [
       "stay consistent.",
     ],
     icon: "/icons/icons/fitness.png",
+    illustration: "/icons/images/Lavender_Fitness.png",
     bg: "bg-[#F3EFFC]",
     borderColor: "border-[#E5DAF6]",
   },
@@ -272,7 +276,7 @@ const PromptCategoryCard: React.FC<PromptCardProps> = ({
 
 export const HeroReference: React.FC = () => {
   return (
-    <section className="bg-[#FAF8F5] text-[#111813] relative overflow-hidden flex flex-col justify-start min-h-[calc(100vh-80px)] 4xl:min-h-[70%] py-6 sm:py-8 lg:py-6">
+    <section className="bg-[#FAF8F5] text-[#111813] relative overflow-hidden flex flex-col justify-start sm:min-h-[calc(100vh-80px)] 4xl:min-h-[70%] py-6 sm:py-8 lg:py-6">
       {/* Background Aura */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] sm:w-[1000px] h-[500px] rounded-full pointer-events-none opacity-50"
@@ -292,7 +296,7 @@ export const HeroReference: React.FC = () => {
           <div className="max-w-4xl mx-auto mt-1 sm:mt-2 lg:mt-1 px-2">
             <h1
               aria-label="Make any AI answer like a wellness expert."
-              className="text-[1.85rem] xs:text-[2.2rem] sm:text-5xl md:text-[54px] lg:text-[60px] xl:text-[90px] font-normal tracking-tight text-[#111813] leading-[1.06] sm:leading-[1.03] [--curve-drop:4px] [--curve-rot:2deg] sm:[--curve-drop:8px] sm:[--curve-rot:3.5deg] lg:[--curve-drop:9px] lg:[--curve-rot:3deg]"
+              className="text-[1.95rem] xs:text-[2.25rem] sm:text-5xl md:text-[54px] lg:text-[60px] xl:text-[90px] font-normal tracking-tight text-[#111813] leading-[1.05] sm:leading-[1.03] [--curve-drop:4px] [--curve-rot:2deg] sm:[--curve-drop:8px] sm:[--curve-rot:3.5deg] lg:[--curve-drop:9px] lg:[--curve-rot:3deg]"
               style={{ fontFamily: "'Anton', sans-serif" }}
             >
               <span className="sr-only">
@@ -321,6 +325,55 @@ export const HeroReference: React.FC = () => {
                 </span>
               </span>
             </h1>
+          </div>
+
+          {/* ------------------------------------------------ */}
+          {/* Mobile 2x2 Category Cards with Images & Icons    */}
+          {/* ------------------------------------------------ */}
+          <div className="sm:hidden grid grid-cols-2 gap-2.5 xs:gap-3 w-full max-w-sm xs:max-w-md mx-auto px-1 my-4 text-left">
+            {categories.map((cat) => (
+              <Link
+                key={cat.slug}
+                href={`/library?cat=${cat.slug}`}
+                className={`p-3 xs:p-3.5 rounded-2xl ${cat.bg} ${cat.borderColor} border-2 border-white shadow-[0_4px_16px_rgba(0,0,0,0.05)] flex flex-col justify-between relative overflow-hidden active:scale-[0.98] transition-transform min-h-[96px] xs:min-h-[104px]`}
+              >
+                {/* Desktop Illustration Image */}
+                <div className="absolute -right-2 -top-1.5 w-13 h-15 xs:w-15 xs:h-17 pointer-events-none select-none opacity-85 z-0">
+                  <img
+                    src={cat.illustration}
+                    alt=""
+                    className="w-full h-full object-contain drop-shadow-sm"
+                    aria-hidden="true"
+                  />
+                </div>
+
+                {/* Header: Icon + Label */}
+                <div className="relative z-10 flex items-center gap-1.5 mb-1.5">
+                  <img
+                    src={cat.icon}
+                    alt=""
+                    className="w-4 h-4 xs:w-[18px] xs:h-[18px] object-contain shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="text-xs xs:text-[13px] font-bold text-[#111813] block">
+                    {cat.label}
+                  </span>
+                </div>
+
+                {/* Query Lines */}
+                <p className="relative z-10 text-[10.5px] xs:text-[11.5px] text-gray-700 leading-snug font-normal">
+                  {cat.lines ? (
+                    cat.lines.map((line, idx) => (
+                      <span key={idx} className="block truncate xs:whitespace-normal">
+                        {line}
+                      </span>
+                    ))
+                  ) : (
+                    cat.question
+                  )}
+                </p>
+              </Link>
+            ))}
           </div>
 
           {/* ------------------------------------------------ */}
@@ -410,48 +463,10 @@ export const HeroReference: React.FC = () => {
           </div>
 
           {/* ------------------------------------------------ */}
-          {/* Mobile Category Cards                            */}
+          {/* Subtitle & CTA                                   */}
           {/* ------------------------------------------------ */}
 
-          <div className="sm:hidden grid grid-cols-2 gap-2 px-1 w-full text-left my-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.slug}
-                href={`/library?cat=${cat.slug}`}
-                className={`p-2.5 rounded-2xl ${cat.bg} ${cat.borderColor} border shadow-sm flex flex-col justify-between transition-transform active:scale-[0.98] min-h-[76px]`}
-              >
-                <div className="flex items-center gap-1.5 mb-1">
-                  <img
-                    src={cat.icon}
-                    alt=""
-                    className="w-4 h-4 object-contain shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span className="text-xs font-bold text-[#111813] block">
-                    {cat.label}
-                  </span>
-                </div>
-
-                <p className="text-[10px] text-gray-700 leading-snug">
-                  {cat.lines ? (
-                    cat.lines.map((line, idx) => (
-                      <span key={idx} className="block truncate">
-                        {line}
-                      </span>
-                    ))
-                  ) : (
-                    cat.question
-                  )}
-                </p>
-              </Link>
-            ))}
-          </div>
-
-          {/* ------------------------------------------------ */}
-          {/* Subtitle                                         */}
-          {/* ------------------------------------------------ */}
-
-          <div className="max-w-xl sm:max-w-2xl mx-auto space-y-3 sm:space-y-3.5 relative sm:-top-5 md:-top-7 lg:-top-9">
+          <div className="max-w-xl sm:max-w-2xl mx-auto space-y-3 sm:space-y-3.5 relative sm:-top-5 md:-top-7 lg:-top-9 mt-4 sm:mt-0">
             <p className="text-xs sm:text-sm md:text-[15px] lg:text-base text-[#4B5563] leading-relaxed font-normal">
               <span>
                 500+ prompts for skin, gut, nutrition and fitness.{" "}

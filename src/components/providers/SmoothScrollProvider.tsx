@@ -28,17 +28,14 @@ export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ chil
     const lenis = new Lenis({
       // Built-in high-precision RAF loop synchronized with browser vsync
       autoRaf: true,
-      // Continuous linear interpolation (lower = silkier, buttery smooth glide)
-      lerp: 0.08,
-      // Gentle, controlled mouse wheel response to eliminate harsh notched clicks on PC
-      wheelMultiplier: 0.95,
-      // 1:1 natural touch response without hypersensitivity
-      touchMultiplier: 1,
+      // Continuous linear interpolation for silky desktop wheel glide
+      lerp: 0.09,
+      // Smooth mouse wheel response on desktop
+      wheelMultiplier: 1,
+      // Only smooth mouse wheel on desktop; keep mobile touch 100% native
       smoothWheel: true,
-      // Seamless touch & mobile inertia sync
-      syncTouch: true,
-      syncTouchLerp: 0.075,
-      touchInertiaExponent: 1.6,
+      // Disable touch interception so mobile uses 100% native 120Hz kinetic scroll
+      syncTouch: false,
       overscroll: true,
       stopInertiaOnNavigate: true,
       anchors: {

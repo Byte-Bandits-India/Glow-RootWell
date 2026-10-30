@@ -360,12 +360,6 @@ export const TestimonialsSection: React.FC = () => {
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
       >
-        {/* Left Edge Gradient Fade */}
-        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-r from-[#F2F6ED] to-transparent z-20" />
-
-        {/* Right Edge Gradient Fade */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 md:w-24 bg-gradient-to-l from-[#F2F6ED] to-transparent z-20" />
-
         {/* Continuous Scrolling Draggable Track */}
         <div
           ref={trackRef}
