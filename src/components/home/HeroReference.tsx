@@ -293,7 +293,7 @@ export const HeroReference: React.FC = () => {
           {/* Main Headline with Subtle Reference Curve        */}
           {/* ------------------------------------------------ */}
 
-          <div className="max-w-4xl mx-auto mt-1 sm:mt-2 lg:mt-1 px-2">
+          <div className="max-w-4xl mx-auto mt-8 px-2">
             <h1
               aria-label="Make any AI answer like a wellness expert."
               className="text-[1.95rem] xs:text-[2.25rem] sm:text-5xl md:text-[54px] lg:text-[60px] xl:text-[90px] font-normal tracking-tight text-[#111813] leading-[1.05] sm:leading-[1.03] [--curve-drop:4px] [--curve-rot:2deg] sm:[--curve-drop:8px] sm:[--curve-rot:3.5deg] lg:[--curve-drop:9px] lg:[--curve-rot:3deg]"
@@ -330,7 +330,7 @@ export const HeroReference: React.FC = () => {
           {/* ------------------------------------------------ */}
           {/* Mobile 2x2 Category Cards with Images & Icons    */}
           {/* ------------------------------------------------ */}
-          <div className="sm:hidden grid grid-cols-2 gap-2.5 xs:gap-3 w-full max-w-sm xs:max-w-md mx-auto px-1 my-4 text-left">
+          <div className="sm:hidden grid grid-cols-2 gap-2.5 xs:gap-3 w-full max-w-sm xs:max-w-md mx-auto px-1 my-10 text-left">
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
@@ -488,12 +488,12 @@ export const HeroReference: React.FC = () => {
             </p>
 
             {/* CTA Button */}
-            <div className="pt-1">
+            <div className="pt-2">
               <Button
                 href="/pricing"
                 variant="accent"
                 size="lg"
-                className="inline-flex items-center justify-center px-8 sm:px-11 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-[#133814] via-[#1e4e23] to-[#307c40] hover:brightness-110 text-white font-medium sm:font-semibold text-sm sm:text-base border border-[#b6b8b6] shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                className="inline-flex items-center justify-center px-8 sm:px-11 py-3 rounded-full bg-gradient-to-r from-[#133814] via-[#1e4e23] to-[#307c40] hover:brightness-110 text-white font-medium sm:font-semibold text-sm sm:text-base border border-[#b6b8b6] shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
               >
                 Get Started
               </Button>
