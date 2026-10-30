@@ -364,7 +364,7 @@ export const HeroReference: React.FC = () => {
                   <PromptCategoryCard {...categories[3]} />
 
                   {/* Water Bottle + Yoga Mat + Dumbbell */}
-                  <div className="absolute -right-4 sm:-right-6 md:-right-10 -top-4 sm:-top-6 md:-top-8 w-20 sm:w-24 md:w-28 lg:w-36 select-none pointer-events-none z-20">
+                  <div className="absolute -right-4 sm:-right-6 md:-right-10 lg:-right-16 -top-4 sm:-top-6 md:-top-8 w-20 sm:w-24 md:w-28 lg:w-36 select-none pointer-events-none z-20">
                     <div className="relative w-full h-full">
                       <img
                         src="/icons/images/Lavender_Fitness.png"
