@@ -6,7 +6,7 @@ import { Container } from "../layout/Container";
 
 export const ObservedStories: React.FC = () => {
   return (
-    <section className="relative text-[#0B2C13] bg-gradient-to-b from-[#F6F5FA] via-[#F0EFF5] to-[#E2DCE6] flex items-center lg:min-h-[580px] xl:min-h-[640px] 2xl:min-h-[680px] border-b border-[#E1E5DA] overflow-hidden">
+    <section className="relative text-[#0B2C13] bg-[#F5F3FB] bg-[linear-gradient(90deg,rgba(245,243,251,1)_0%,rgba(238,237,242,1)_49%,rgba(249,249,251,1)_74%)] flex items-center lg:min-h-[580px] xl:min-h-[640px] 2xl:min-h-[680px] border-b border-[#E1E5DA] overflow-hidden">
       {/* Desktop seamless studio background photo - matches background gradient and feathers edges */}
       <div className="hidden lg:block absolute inset-0 z-0 pointer-events-none">
         <div className="relative w-full h-full max-w-[1440px] xl:max-w-[1536px] 2xl:max-w-[1600px] mx-auto [mask-image:linear-gradient(to_right,transparent,black_48px,black_calc(100%-48px),transparent)]">
