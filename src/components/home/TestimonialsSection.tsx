@@ -326,44 +326,17 @@ export const TestimonialsSection: React.FC = () => {
               <X className="w-4 h-4" />
             </button>
 
-            {/* Video / Photo Banner for Video Cards */}
-            {activeModalItem.isVideo && activeModalItem.photoUrl && (
+            {/* Video Banner for Video Cards (e.g. t1) */}
+            {activeModalItem.isVideo && activeModalItem.videoUrl && (
               <div className="relative h-48 sm:h-56 md:h-64 w-full bg-black flex items-center justify-center overflow-hidden shrink-0">
-                {activeModalItem.videoUrl ? (
-                  <video
-                    src={activeModalItem.videoUrl}
-                    poster={activeModalItem.photoUrl}
-                    controls
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-contain bg-black"
-                  />
-                ) : (
-                  <div className="relative w-full h-full flex flex-col items-center justify-center">
-                    <Image
-                      src={activeModalItem.photoUrl}
-                      alt={activeModalItem.name}
-                      fill
-                      className="object-cover opacity-60"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B2C13] via-black/45 to-black/30" />
-
-                    {/* Spotlight Indicator */}
-                    <div className="relative z-10 text-center px-6 max-w-md">
-                      <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-white text-black shadow-xl flex items-center justify-center hover:scale-105 transition-transform">
-                        <svg className="w-5 h-5 fill-current text-black ml-0.5" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
-                      <h4 className="font-bold text-sm sm:text-base text-white mb-0.5">
-                        {activeModalItem.name} &bull; Clinical Spotlight
-                      </h4>
-                      <p className="text-xs text-white/70">
-                        {activeModalItem.role}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                <video
+                  src={activeModalItem.videoUrl}
+                  poster={activeModalItem.photoUrl}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-contain bg-black"
+                />
               </div>
             )}
 
