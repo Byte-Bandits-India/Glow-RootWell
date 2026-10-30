@@ -14,6 +14,11 @@ const categories = [
     slug: "skin",
     label: "Skin",
     question: "How can I reduce acne and get clearer, healthier skin?",
+    lines: [
+      "How can I reduce acne",
+      "and get clearer, healthier",
+      "skin?",
+    ],
     icon: "/icons/icons/skin.png",
     bg: "bg-[#f8edeb]",
     borderColor: "border-black/[0.05]",
@@ -22,6 +27,11 @@ const categories = [
     slug: "gut",
     label: "Gut",
     question: "What foods help with bloating and better digestion?",
+    lines: [
+      "What foods help with",
+      "bloating and better",
+      "digestion?",
+    ],
     icon: "/icons/icons/gut.png",
     bg: "bg-[#EAF7EE]",
     borderColor: "border-[#D2EDDA]",
@@ -30,6 +40,11 @@ const categories = [
     slug: "nutrition",
     label: "Nutrition",
     question: "Create a balanced meal plan for more energy and focus.",
+    lines: [
+      "Create a balanced meal",
+      "plan for more energy and",
+      "focus.",
+    ],
     icon: "/icons/icons/nutrition.png",
     bg: "bg-[#FFF9E6]",
     borderColor: "border-[#F7EAC4]",
@@ -39,6 +54,11 @@ const categories = [
     label: "Fitness",
     question:
       "Design a home workout plan to build strength and stay consistent.",
+    lines: [
+      "Design a home workout",
+      "plan to build strength and",
+      "stay consistent.",
+    ],
     icon: "/icons/icons/fitness.png",
     bg: "bg-[#F3EFFC]",
     borderColor: "border-[#E5DAF6]",
@@ -51,9 +71,9 @@ const categories = [
 
 // Green sparkle after headline
 const SparkBurst = () => (
-  <span className="absolute -top-2.5 sm:-top-3.5 -right-5 sm:-right-7 pointer-events-none select-none">
+  <span className="absolute -top-2.5 sm:-top-3.5 md:-top-4 lg:-top-5 xl:-top-6 -right-5 sm:-right-7 md:-right-8 lg:-right-10 xl:-right-12 pointer-events-none select-none">
     <svg
-      className="w-4 h-4 sm:w-6 sm:h-6 text-[#1C7C3B]"
+      className="w-4 h-4 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-9 lg:h-9 xl:w-11 xl:h-11 text-[#1C7C3B]"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -69,9 +89,9 @@ const SparkBurst = () => (
 
 // Mouse pointer
 const PointerCursor = () => (
-  <div className="absolute -bottom-3.5 -left-3 sm:-bottom-8 sm:-left-4 z-30 pointer-events-none select-none drop-shadow-md">
+  <div className="absolute -bottom-3.5 -left-3 sm:-bottom-8 sm:-left-4 md:-bottom-9 md:-left-5 lg:-bottom-10 lg:-left-6 z-30 pointer-events-none select-none drop-shadow-md">
     <svg
-      className="w-6 h-6 sm:w-12 sm:h-12 text-[#1A1A1A] fill-[#1A1A1A]"
+      className="w-6 h-6 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-18 lg:h-18 text-[#1A1A1A] fill-[#1A1A1A]"
       viewBox="0 0 24 24"
       stroke="white"
       strokeWidth="1.75"
@@ -200,6 +220,7 @@ interface PromptCardProps {
   slug: string;
   label: string;
   question: string;
+  lines?: readonly string[];
   icon: string;
   bg: string;
   borderColor: string;
@@ -209,29 +230,38 @@ const PromptCategoryCard: React.FC<PromptCardProps> = ({
   slug,
   label,
   question,
+  lines,
   icon,
   bg,
   borderColor,
 }) => (
   <Link
     href={`/library?cat=${slug}`}
-    className={`${bg} ${borderColor} border-2 border-white rounded-2xl p-2.5 sm:p-3 lg:p-4 w-[145px] sm:w-[152px] md:w-[165px] shadow-[0_10px_25px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all duration-200 hover:-translate-y-1 group block text-left relative z-10`}
+    className={`${bg} ${borderColor} border-2 border-white rounded-2xl p-2.5 sm:p-3 md:p-3.5 lg:p-4 w-[145px] sm:w-[155px] md:w-[170px] lg:w-[180px] xl:w-[220px] shadow-[0_10px_25px_rgba(0,0,0,0.06)] hover:shadow-xl transition-all duration-200 hover:-translate-y-1 group block text-left relative z-10`}
   >
-    <div className="flex items-center gap-1.5 mb-1 sm:mb-1.5">
+    <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
       <img
         src={icon}
         alt=""
-        className="w-4 h-4 sm:w-[18px] sm:h-[18px] object-contain shrink-0"
+        className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 object-contain shrink-0"
         aria-hidden="true"
       />
 
-      <span className="text-xs sm:text-[13px] lg:text-sm font-bold text-[#111813]">
+      <span className="text-xs sm:text-[13px] md:text-sm lg:text-[14px] font-bold text-[#111813]">
         {label}
       </span>
     </div>
 
-    <p className="text-[10px] sm:text-[11px] text-gray-700 leading-snug font-normal">
-      {question}
+    <p className="text-[10px] sm:text-[11px] md:text-xs lg:text-[12px] text-gray-700 leading-snug font-normal">
+      {lines ? (
+        lines.map((line, idx) => (
+          <span key={idx} className="block whitespace-nowrap">
+            {line}
+          </span>
+        ))
+      ) : (
+        question
+      )}
     </p>
   </Link>
 );
@@ -245,7 +275,7 @@ export const HeroReference: React.FC = () => {
     <section className="bg-[#FAF8F5] text-[#111813] relative overflow-hidden flex flex-col justify-start min-h-[calc(100vh-80px)] 2xl:min-h-[70%] py-6 sm:py-8 lg:py-6">
       {/* Background Aura */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] rounded-full pointer-events-none opacity-50"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] sm:w-[1000px] h-[500px] rounded-full pointer-events-none opacity-50"
         style={{
           background:
             "radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(250,248,245,0) 70%)",
@@ -253,16 +283,16 @@ export const HeroReference: React.FC = () => {
         aria-hidden="true"
       />
 
-      <Container className="relative z-10 flex flex-col flex-1 w-full">
-        <div className="flex flex-col items-center text-center max-w-5xl mx-auto w-full my-auto">
+      <Container className="relative z-10 flex flex-col flex-1 w-full max-w-6xl">
+        <div className="flex flex-col items-center text-center w-full my-auto">
           {/* ------------------------------------------------ */}
           {/* Main Headline with Subtle Reference Curve        */}
           {/* ------------------------------------------------ */}
 
-          <div className="max-w-5xl mx-auto mt-2 sm:mt-4 lg:mt-2 px-2">
+          <div className="max-w-4xl mx-auto mt-1 sm:mt-2 lg:mt-1 px-2">
             <h1
               aria-label="Make any AI answer like a wellness expert."
-              className="text-[1.85rem] xs:text-[2.2rem] sm:text-5xl md:text-[56px] lg:text-[62px] font-normal tracking-tight text-[#111813] leading-[1.08] sm:leading-[1.04] [--curve-drop:4px] [--curve-rot:2deg] sm:[--curve-drop:10px] sm:[--curve-rot:4.5deg] lg:[--curve-drop:8px] lg:[--curve-rot:3deg]"
+              className="text-[1.85rem] xs:text-[2.2rem] sm:text-5xl md:text-[54px] lg:text-[60px] xl:text-[90px] font-normal tracking-tight text-[#111813] leading-[1.06] sm:leading-[1.03] [--curve-drop:4px] [--curve-rot:2deg] sm:[--curve-drop:8px] sm:[--curve-rot:3.5deg] lg:[--curve-drop:9px] lg:[--curve-rot:3deg]"
               style={{ fontFamily: "'Anton', sans-serif" }}
             >
               <span className="sr-only">
@@ -297,13 +327,13 @@ export const HeroReference: React.FC = () => {
           {/* Desktop / Tablet Category Cards                  */}
           {/* ------------------------------------------------ */}
 
-          <div className="relative w-full max-w-[920px] mx-auto hidden sm:block">
-            <div className="relative mx-auto w-full h-[210px] md:h-[225px] lg:h-[235px]">
+          <div className="relative w-full max-w-[1000px] xl:max-w-[1060px] mx-auto hidden sm:block">
+            <div className="relative mx-auto w-full h-[210px] sm:h-[220px] md:h-[230px] lg:h-[240px]">
               {/* Skin Card */}
-              <div className="absolute left-[0%] sm:left-[2%] md:left-[5%] lg:left-[6%] -top-[10%] -rotate-[7deg] z-10 transition-transform duration-300 hover:rotate-0 hover:scale-105">
+              <div className="absolute left-[3%] sm:left-[4%] md:left-[5%] lg:left-[8%] xl:-left-[2%] -top-[6%] -rotate-[7deg] z-10 transition-transform duration-300 hover:rotate-0 hover:scale-105">
                 <div className="relative">
                   {/* Serum Bottle + Leaves */}
-                  <div className="absolute -top-10 -left-4 sm:-top-14 sm:-left-6 md:-top-24 md:-left-8 w-20 h-24 sm:w-28 sm:h-32 md:w-36 md:h-40 rotate-[4deg] select-none pointer-events-none z-0">
+                  <div className="absolute -top-8 -left-3 sm:-top-10 sm:-left-4 md:-top-28 md:-left-5 lg:-top-28 lg:-left-20 w-20 h-24 sm:w-24 sm:h-28 md:w-38 md:h-48 lg:w-60 lg:h-38 rotate-[4deg] select-none pointer-events-none z-0">
                     <img
                       src="/icons/images/Green_Serum.png"
                       alt=""
@@ -317,14 +347,14 @@ export const HeroReference: React.FC = () => {
               </div>
 
               {/* Gut Card */}
-              <div className="absolute left-[24%] sm:left-[26%] md:left-[26%] lg:left-[26%] top-[10%] rotate-[6deg] z-20 transition-transform duration-300 hover:rotate-0 hover:scale-105">
+              <div className="absolute left-[26%] sm:left-[27%] md:left-[28%] xl:left-[22%] top-[10%] rotate-[6deg] z-20 transition-transform duration-300 hover:rotate-0 hover:scale-105">
                 <div className="relative">
                   <PromptCategoryCard {...categories[1]} />
 
                   <PointerCursor />
 
                   {/* Gut Illustration */}
-                  <div className="absolute -right-8 sm:-right-10 md:-right-14 top-1/2 rotate-[4deg] -translate-y-1/2 w-12 sm:w-14 md:w-16 lg:w-[72px] select-none pointer-events-none z-0">
+                  <div className="absolute -right-7 sm:-right-8 md:-right-9 lg:-right-14 top-1/2 rotate-[4deg] -translate-y-1/2 w-12 sm:w-14 md:w-15 lg:w-20 select-none pointer-events-none z-0">
                     <div className="relative w-full h-full">
                       <img
                         src="/icons/images/gut_illustration.png"
@@ -338,12 +368,12 @@ export const HeroReference: React.FC = () => {
               </div>
 
               {/* Nutrition Card */}
-              <div className="absolute left-[49%] sm:left-[50%] md:left-[51%] lg:left-[52%] top-[10%] -rotate-[6deg] z-20 transition-transform duration-300 hover:rotate-0 hover:scale-105">
+              <div className="absolute left-[49%] sm:left-[50%] md:left-[54%] xl:left-[51%] top-[10%] -rotate-[6deg] z-20 transition-transform duration-300 hover:rotate-0 hover:scale-105">
                 <div className="relative">
                   <PromptCategoryCard {...categories[2]} />
 
                   {/* Nutrition Bowl */}
-                  <div className="absolute -right-8 sm:-right-10 md:-right-14 -bottom-4 sm:-bottom-8 md:-bottom-10 w-16 sm:w-20 md:w-[88px] lg:w-24 select-none pointer-events-none z-20">
+                  <div className="absolute -right-7 sm:-right-8 md:-right-9 lg:-right-10 -bottom-4 sm:-bottom-6 md:-bottom-7 lg:-bottom-8 w-15 sm:w-17 md:w-19 lg:w-26 select-none pointer-events-none z-20">
                     <div className="relative w-full h-full">
                       <NutritionAccentRays />
 
@@ -359,12 +389,12 @@ export const HeroReference: React.FC = () => {
               </div>
 
               {/* Fitness Card */}
-              <div className="absolute right-[0%] sm:right-[2%] md:right-[3%] lg:right-[4%] top-[8%] rotate-[7deg] z-10 transition-transform duration-300 hover:rotate-0 hover:scale-105">
+              <div className="absolute right-[3%] sm:right-[4%] md:right-[5%] xl:-right-[1%] top-[8%] rotate-[7deg] z-10 transition-transform duration-300 hover:rotate-0 hover:scale-105">
                 <div className="relative">
                   <PromptCategoryCard {...categories[3]} />
 
                   {/* Water Bottle + Yoga Mat + Dumbbell */}
-                  <div className="absolute -right-4 sm:-right-6 md:-right-10 lg:-right-16 -top-4 sm:-top-6 md:-top-8 w-20 sm:w-24 md:w-28 lg:w-36 select-none pointer-events-none z-20">
+                  <div className="absolute -right-3 sm:-right-4 md:-right-5 lg:-right-10 -top-3 sm:-top-4 md:-top-5 lg:-top-14 w-20 sm:w-22 md:w-24 lg:w-44 select-none pointer-events-none z-20">
                     <div className="relative w-full h-full">
                       <img
                         src="/icons/images/Lavender_Fitness.png"
@@ -402,8 +432,16 @@ export const HeroReference: React.FC = () => {
                   </span>
                 </div>
 
-                <p className="text-[10px] text-gray-700 leading-snug line-clamp-2">
-                  {cat.question}
+                <p className="text-[10px] text-gray-700 leading-snug">
+                  {cat.lines ? (
+                    cat.lines.map((line, idx) => (
+                      <span key={idx} className="block truncate">
+                        {line}
+                      </span>
+                    ))
+                  ) : (
+                    cat.question
+                  )}
                 </p>
               </Link>
             ))}
@@ -413,16 +451,16 @@ export const HeroReference: React.FC = () => {
           {/* Subtitle                                         */}
           {/* ------------------------------------------------ */}
 
-          <div className="max-w-xl mx-auto space-y-3 sm:space-y-3.5 relative sm:-top-6 md:-top-8 lg:-top-10">
-            <p className="text-xs sm:text-sm md:text-[15px] text-[#4B5563] leading-relaxed font-normal">
+          <div className="max-w-xl sm:max-w-2xl mx-auto space-y-3 sm:space-y-3.5 relative sm:-top-5 md:-top-7 lg:-top-9">
+            <p className="text-xs sm:text-sm md:text-[15px] lg:text-base text-[#4B5563] leading-relaxed font-normal">
               <span>
-                500+ prompts for skin, gut, nutrition and fitness.
+                500+ prompts for skin, gut, nutrition and fitness.{" "}
               </span>
 
               <br className="hidden sm:inline" />
 
               <span>
-                Paste one into ChatGPT, Claude or Gemini and get advice
+                Paste one into ChatGPT, Claude or Gemini and get advice{" "}
               </span>
 
               <br className="hidden sm:inline" />
