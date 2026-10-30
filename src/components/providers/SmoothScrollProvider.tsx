@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
@@ -12,22 +12,41 @@ interface SmoothScrollProviderProps {
 export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ children }) => {
   const pathname = usePathname();
   const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/signup");
+  const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    // Disable Lenis on authentication pages to guarantee native scrolling
-    if (isAuthPage) return;
+    // Disable Lenis on authentication pages to guarantee native form interactions
+    if (isAuthPage) {
+      if (lenisRef.current) {
+        lenisRef.current.destroy();
+        lenisRef.current = null;
+        delete (window as unknown as { __lenis?: Lenis }).__lenis;
+      }
+      return;
+    }
 
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
-      gestureOrientation: "vertical",
+      // Built-in high-precision RAF loop synchronized with browser vsync
+      autoRaf: true,
+      // Continuous linear interpolation (lower = silkier, buttery smooth glide)
+      lerp: 0.08,
+      // Gentle, controlled mouse wheel response to eliminate harsh notched clicks on PC
+      wheelMultiplier: 0.95,
+      // 1:1 natural touch response without hypersensitivity
+      touchMultiplier: 1,
       smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 1.5,
+      // Seamless touch & mobile inertia sync
+      syncTouch: true,
+      syncTouchLerp: 0.075,
+      touchInertiaExponent: 1.6,
+      overscroll: true,
+      stopInertiaOnNavigate: true,
+      anchors: {
+        offset: -80,
+      },
     });
 
-    // Store reference globally for external calls or programmatic scrolling
+    lenisRef.current = lenis;
     (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
 
     // Smoothly intercept hashtag anchor links across the app
@@ -42,7 +61,6 @@ export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ chil
         if (element) {
           e.preventDefault();
           lenis.scrollTo(element, { offset: -80 });
-          // Update URL hash without standard browser jump
           window.history.pushState(null, "", `#${id}`);
         }
       }
@@ -50,20 +68,23 @@ export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ chil
 
     document.addEventListener("click", handleAnchorClick);
 
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
-
     return () => {
       document.removeEventListener("click", handleAnchorClick);
-      cancelAnimationFrame(rafId);
       lenis.destroy();
+      lenisRef.current = null;
       delete (window as unknown as { __lenis?: Lenis }).__lenis;
     };
-  }, []);
+  }, [isAuthPage]);
+
+  // Recalculate dimensions & smoothly reset scroll position on route transitions
+  useEffect(() => {
+    if (isAuthPage || !lenisRef.current) return;
+    lenisRef.current.scrollTo(0, { immediate: true });
+    const timer = setTimeout(() => {
+      lenisRef.current?.resize();
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [pathname, isAuthPage]);
 
   return <>{children}</>;
 };
