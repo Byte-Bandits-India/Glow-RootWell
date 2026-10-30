@@ -130,6 +130,7 @@ export const TestimonialsSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
+  const isPointerDownRef = useRef(false);
   const isDraggingRef = useRef(false);
   const isHoveredRef = useRef(false);
   const startXRef = useRef(0);
@@ -190,8 +191,8 @@ export const TestimonialsSection: React.FC = () => {
               velocityRef.current *= 0.95; // Smooth momentum decay
             } else {
               velocityRef.current = 0;
-              // If not hovered and modal is closed, auto-scroll left smoothly
-              if (!isHoveredRef.current && !activeModalItemRef.current) {
+              // If not hovered, modal is closed, and pointer is not down, auto-scroll left smoothly
+              if (!isHoveredRef.current && !activeModalItemRef.current && !isPointerDownRef.current) {
                 currentXRef.current -= 0.75;
               }
             }
@@ -224,46 +225,58 @@ export const TestimonialsSection: React.FC = () => {
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 && e.pointerType === "mouse") return;
-    isDraggingRef.current = true;
-    setIsDragging(true);
+    isPointerDownRef.current = true;
+    isDraggingRef.current = false;
     startXRef.current = e.clientX;
     lastXRef.current = e.clientX;
     velocityRef.current = 0;
     hasDraggedRef.current = false;
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {}
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingRef.current || !trackRef.current) return;
+    if (!isPointerDownRef.current || !trackRef.current) return;
 
     const clientX = e.clientX;
     const deltaX = clientX - lastXRef.current;
     lastXRef.current = clientX;
 
-    if (Math.abs(clientX - startXRef.current) > 5) {
-      hasDraggedRef.current = true;
-    }
+    const totalDeltaX = Math.abs(clientX - startXRef.current);
 
-    currentXRef.current += deltaX;
-    velocityRef.current = velocityRef.current * 0.4 + deltaX * 0.6;
-
-    const setWidth = setWidthRef.current;
-    if (setWidth > 0) {
-      while (currentXRef.current <= -2 * setWidth) {
-        currentXRef.current += setWidth;
+    // Only initiate drag after moving past 8px threshold (distinguishes tap/click from drag)
+    if (totalDeltaX > 8) {
+      if (!hasDraggedRef.current) {
+        hasDraggedRef.current = true;
+        isDraggingRef.current = true;
+        setIsDragging(true);
+        try {
+          if (!e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }
+        } catch {}
       }
-      while (currentXRef.current > -setWidth) {
-        currentXRef.current -= setWidth;
-      }
-    }
 
-    trackRef.current.style.transform = `translate3d(${currentXRef.current}px, 0, 0)`;
+      currentXRef.current += deltaX;
+      velocityRef.current = velocityRef.current * 0.4 + deltaX * 0.6;
+
+      const setWidth = setWidthRef.current;
+      if (setWidth > 0) {
+        while (currentXRef.current <= -2 * setWidth) {
+          currentXRef.current += setWidth;
+        }
+        while (currentXRef.current > -setWidth) {
+          currentXRef.current -= setWidth;
+        }
+      }
+
+      trackRef.current.style.transform = `translate3d(${currentXRef.current}px, 0, 0)`;
+    }
   };
 
   const handlePointerUp = (e?: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingRef.current) return;
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+
+    const wasDragging = hasDraggedRef.current;
     isDraggingRef.current = false;
     setIsDragging(false);
 
@@ -275,13 +288,25 @@ export const TestimonialsSection: React.FC = () => {
       } catch {}
     }
 
-    // Clamp flick velocity
-    velocityRef.current = Math.max(-18, Math.min(18, velocityRef.current));
+    if (wasDragging) {
+      // Clamp flick velocity
+      velocityRef.current = Math.max(-18, Math.min(18, velocityRef.current));
 
-    // Suppress trailing click event if dragged
-    setTimeout(() => {
+      // Suppress trailing click event if dragged
+      setTimeout(() => {
+        hasDraggedRef.current = false;
+      }, 150);
+    } else {
+      velocityRef.current = 0;
       hasDraggedRef.current = false;
-    }, 60);
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent, card: TestimonialCardItem) => {
+    e.stopPropagation();
+    if (!hasDraggedRef.current) {
+      setActiveModalItem(card);
+    }
   };
 
   // Prevent background scrolling and pause Lenis while modal is open
@@ -351,13 +376,13 @@ export const TestimonialsSection: React.FC = () => {
         }}
         onMouseLeave={() => {
           isHoveredRef.current = false;
-          if (isDraggingRef.current) {
+          if (isPointerDownRef.current) {
             handlePointerUp();
           }
         }}
         style={{ touchAction: "pan-y" }}
         className={`relative w-full overflow-hidden select-none py-3 ${
-          isDragging ? "cursor-grabbing" : "cursor-grab"
+          isDragging ? "cursor-grabbing [&_*]:cursor-grabbing" : "cursor-grab"
         }`}
       >
         {/* Continuous Scrolling Draggable Track */}
@@ -372,11 +397,7 @@ export const TestimonialsSection: React.FC = () => {
               return (
                 <div
                   key={`${card.id}-${idx}`}
-                  onClick={() => {
-                    if (!hasDraggedRef.current) {
-                      setActiveModalItem(card);
-                    }
-                  }}
+                  onClick={(e) => handleCardClick(e, card)}
                   className="w-[260px] sm:w-[290px] md:w-[310px] shrink-0 h-[310px] sm:h-[330px] relative group rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.07)] cursor-pointer flex flex-col justify-between p-5 select-none transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
                 >
                   {/* Doctor High-Res Photo Background */}
@@ -384,7 +405,7 @@ export const TestimonialsSection: React.FC = () => {
                     src={card.photoUrl}
                     alt={card.name}
                     fill
-                    sizes="320px"
+                    sizes="(max-width: 640px) 260px, (max-width: 768px) 290px, 310px"
                     priority={idx < 4}
                     draggable={false}
                     className="object-cover object-top group-hover:scale-105 transition-transform duration-500 pointer-events-none select-none"
@@ -436,11 +457,7 @@ export const TestimonialsSection: React.FC = () => {
             return (
               <div
                 key={`${card.id}-${idx}`}
-                onClick={() => {
-                  if (!hasDraggedRef.current) {
-                    setActiveModalItem(card);
-                  }
-                }}
+                onClick={(e) => handleCardClick(e, card)}
                 className="w-[260px] sm:w-[290px] md:w-[310px] shrink-0 h-[310px] sm:h-[330px] bg-white rounded-2xl sm:rounded-3xl p-5 shadow-[0_6px_24px_rgba(0,0,0,0.05)] border border-gray-100/90 flex flex-col justify-between transition-shadow duration-300 hover:shadow-[0_12px_28px_rgba(0,0,0,0.09)] select-none cursor-pointer"
               >
                 {/* Top Row: Avatar + Name & Role + Twitter Bird Icon */}
@@ -451,6 +468,7 @@ export const TestimonialsSection: React.FC = () => {
                         src={card.avatar}
                         alt={card.name}
                         fill
+                        sizes="36px"
                         draggable={false}
                         className="object-cover pointer-events-none select-none"
                       />
@@ -538,6 +556,7 @@ export const TestimonialsSection: React.FC = () => {
                       src={activeModalItem.avatar}
                       alt={activeModalItem.name}
                       fill
+                      sizes="44px"
                       className="object-cover"
                     />
                   </div>
