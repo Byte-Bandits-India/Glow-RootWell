@@ -4,7 +4,6 @@ import { prompts, users } from "@/lib/db/schema";
 import { eq, desc, asc, and, like, or } from "drizzle-orm";
 import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 import { hasAccessToBundle } from "@/lib/plans";
-import { importPromptsFromExcel } from "@/lib/excel/promptImporter";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -171,30 +170,10 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST endpoint to handle future Excel file uploads
-export async function POST(req: NextRequest) {
-  try {
-    await ensureDbInitialized();
-
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-
-    if (!file) {
-      return NextResponse.json({ error: "No Excel file provided" }, { status: 400 });
-    }
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await importPromptsFromExcel(buffer);
-
-    return NextResponse.json({
-      success: true,
-      result,
-    });
-  } catch (error) {
-    console.error("POST /api/prompts import error:", error);
-    return NextResponse.json(
-      { error: "Failed to process Excel file upload" },
-      { status: 500 }
-    );
-  }
+// Prompt catalog seeding is managed via D1 CLI scripts (npm run d1:seed)
+export async function POST() {
+  return NextResponse.json(
+    { message: "Prompt seeding is performed via local D1 scripts (npm run d1:seed)." },
+    { status: 200 }
+  );
 }
