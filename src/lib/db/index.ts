@@ -1,7 +1,21 @@
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
-import { drizzle as drizzleLibsql } from "drizzle-orm/libsql";
-import { createClient, type Client } from "@libsql/client";
 import * as schema from "./schema";
+
+export interface DbClient {
+  execute: (statement: string | { sql: string; args?: any[] }) => Promise<{
+    rows: any[];
+    columns: string[];
+    rowsAffected: number;
+    lastInsertRowid?: bigint;
+  }>;
+  batch: (statements: any[]) => Promise<Array<{
+    rows: any[];
+    columns: string[];
+    rowsAffected: number;
+  }>>;
+}
+
+export type AppDb = ReturnType<typeof drizzleD1<typeof schema>>;
 
 function getCloudflareEnv(): any {
   try {
@@ -21,9 +35,24 @@ export function getD1Database(): any {
 
 let _cachedD1Db: any = null;
 let _cachedLibsqlDb: any = null;
-let _cachedLibsqlClient: Client | null = null;
+let _cachedLibsqlClient: any = null;
 
-export function getDb(): any {
+function getLocalLibsqlModules() {
+  try {
+    // Dynamic require to prevent Cloudflare Worker bundlers from treating @libsql/client as external
+    const req = (globalThis as any).__non_webpack_require__ || eval("require");
+    const { drizzle } = req("drizzle-orm/libsql");
+    const { createClient } = req("@libsql/client");
+    return { drizzleLibsql: drizzle, createClient };
+  } catch (err: any) {
+    throw new Error(
+      "D1 database binding not found, and local @libsql/client could not be loaded: " +
+        (err?.message || String(err))
+    );
+  }
+}
+
+export function getDb(): AppDb {
   const d1 = getD1Database();
   if (d1) {
     if (!_cachedD1Db) {
@@ -33,6 +62,7 @@ export function getDb(): any {
   }
 
   if (!_cachedLibsqlDb) {
+    const { drizzleLibsql, createClient } = getLocalLibsqlModules();
     if (!_cachedLibsqlClient) {
       const dbUrl = process.env.DATABASE_URL || "file:avyaya.db";
       _cachedLibsqlClient = createClient({
@@ -45,7 +75,7 @@ export function getDb(): any {
   return _cachedLibsqlDb;
 }
 
-export function getClient(): any {
+export function getClient(): DbClient {
   const d1 = getD1Database();
   if (d1) {
     return {
@@ -78,6 +108,7 @@ export function getClient(): any {
   }
 
   if (!_cachedLibsqlClient) {
+    const { createClient } = getLocalLibsqlModules();
     const dbUrl = process.env.DATABASE_URL || "file:avyaya.db";
     _cachedLibsqlClient = createClient({
       url: dbUrl,
@@ -87,7 +118,7 @@ export function getClient(): any {
   return _cachedLibsqlClient;
 }
 
-export const db: ReturnType<typeof drizzleLibsql<typeof schema>> = new Proxy({} as any, {
+export const db: AppDb = new Proxy({} as any, {
   get(_target, prop, receiver) {
     const instance = getDb();
     const value = Reflect.get(instance, prop, receiver);
@@ -95,7 +126,7 @@ export const db: ReturnType<typeof drizzleLibsql<typeof schema>> = new Proxy({} 
   },
 });
 
-export const client: Client = new Proxy({} as any, {
+export const client: DbClient = new Proxy({} as any, {
   get(_target, prop, receiver) {
     const instance = getClient();
     const value = Reflect.get(instance, prop, receiver);

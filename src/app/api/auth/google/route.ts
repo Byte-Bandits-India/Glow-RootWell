@@ -9,9 +9,11 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const clientId = process.env.GOOGLE_CLIENT_ID;
+    const isLocalhost = req.nextUrl.origin.includes("localhost") || req.nextUrl.origin.includes("127.0.0.1");
     const redirectUri =
-      process.env.GOOGLE_REDIRECT_URI ||
-      `${req.nextUrl.origin}/api/auth/callback/google`;
+      !isLocalhost
+        ? `${req.nextUrl.origin}/api/auth/callback/google`
+        : (process.env.GOOGLE_REDIRECT_URI || `${req.nextUrl.origin}/api/auth/callback/google`);
     const rawReturnTo = req.nextUrl.searchParams.get("redirect") || "/";
     const safeReturnTo =
       rawReturnTo.startsWith("/") &&

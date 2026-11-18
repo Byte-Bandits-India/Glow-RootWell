@@ -23,9 +23,11 @@ export async function GET(req: NextRequest) {
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const isLocalhost = req.nextUrl.origin.includes("localhost") || req.nextUrl.origin.includes("127.0.0.1");
     const redirectUri =
-      process.env.GOOGLE_REDIRECT_URI ||
-      `${req.nextUrl.origin}/api/auth/callback/google`;
+      !isLocalhost
+        ? `${req.nextUrl.origin}/api/auth/callback/google`
+        : (process.env.GOOGLE_REDIRECT_URI || `${req.nextUrl.origin}/api/auth/callback/google`);
 
     if (!clientId || !clientSecret) {
       return NextResponse.redirect(
