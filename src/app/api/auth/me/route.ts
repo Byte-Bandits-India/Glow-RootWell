@@ -3,10 +3,10 @@ import { eq } from "drizzle-orm";
 import { db, ensureDbInitialized } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
-import { connection } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  await connection();
   try {
     const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
     if (!token) {
@@ -43,9 +43,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ user: result[0] });
   } catch (error: any) {
-    if (error?.digest === "NEXT_PRERENDER_INTERRUPTED") {
-      throw error;
-    }
     console.error("Auth me error:", error);
     return NextResponse.json({ user: null });
   }

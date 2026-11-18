@@ -3,57 +3,56 @@ import { ensureDbInitialized, db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { createSessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
-import { connection } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  await connection();
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri =
-    process.env.GOOGLE_REDIRECT_URI ||
-    `${req.nextUrl.origin}/api/auth/callback/google`;
-  const rawReturnTo = req.nextUrl.searchParams.get("redirect") || "/";
-  const safeReturnTo =
-    rawReturnTo.startsWith("/") &&
-    !rawReturnTo.startsWith("//") &&
-    !rawReturnTo.startsWith("/login") &&
-    !rawReturnTo.startsWith("/signup")
-      ? rawReturnTo
-      : "/";
+  try {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const redirectUri =
+      process.env.GOOGLE_REDIRECT_URI ||
+      `${req.nextUrl.origin}/api/auth/callback/google`;
+    const rawReturnTo = req.nextUrl.searchParams.get("redirect") || "/";
+    const safeReturnTo =
+      rawReturnTo.startsWith("/") &&
+      !rawReturnTo.startsWith("//") &&
+      !rawReturnTo.startsWith("/login") &&
+      !rawReturnTo.startsWith("/signup")
+        ? rawReturnTo
+        : "/";
 
-  // If real Google Client ID is configured in .env.local, use standard Google OAuth 2.0
-  if (clientId) {
-    const state = crypto.randomUUID();
-    const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    googleAuthUrl.searchParams.set("client_id", clientId);
-    googleAuthUrl.searchParams.set("redirect_uri", redirectUri);
-    googleAuthUrl.searchParams.set("response_type", "code");
-    googleAuthUrl.searchParams.set("scope", "openid profile email");
-    googleAuthUrl.searchParams.set("access_type", "offline");
-    googleAuthUrl.searchParams.set("prompt", "select_account");
-    googleAuthUrl.searchParams.set("state", state);
+    // If real Google Client ID is configured, use standard Google OAuth 2.0
+    if (clientId) {
+      const state = crypto.randomUUID();
+      const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+      googleAuthUrl.searchParams.set("client_id", clientId);
+      googleAuthUrl.searchParams.set("redirect_uri", redirectUri);
+      googleAuthUrl.searchParams.set("response_type", "code");
+      googleAuthUrl.searchParams.set("scope", "openid profile email");
+      googleAuthUrl.searchParams.set("access_type", "offline");
+      googleAuthUrl.searchParams.set("prompt", "select_account");
+      googleAuthUrl.searchParams.set("state", state);
 
-    const response = NextResponse.redirect(googleAuthUrl.toString());
-    response.cookies.set("google_oauth_state", state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 10 * 60, // 10 minutes
-      path: "/",
-    });
-    if (safeReturnTo !== "/") {
-      response.cookies.set("google_oauth_redirect", safeReturnTo, {
+      const response = NextResponse.redirect(googleAuthUrl.toString());
+      response.cookies.set("google_oauth_state", state, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 10 * 60,
+        maxAge: 10 * 60, // 10 minutes
         path: "/",
       });
+      if (safeReturnTo !== "/") {
+        response.cookies.set("google_oauth_redirect", safeReturnTo, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 10 * 60,
+          path: "/",
+        });
+      }
+      return response;
     }
-    return response;
-  }
 
-  // Seamless Sandbox/Dev Fallback:
-  // If user hasn't set up GCP OAuth credentials yet, create a verified demo Google account
-  // in SQLite so the user can test the entire Google login flow immediately!
-  try {
+    // Seamless Sandbox/Dev Fallback:
+    // If Google OAuth credentials aren't set in environment, create/use verified demo account
     await ensureDbInitialized();
 
     const mockEmail = "sarah.jenkins@gmail.com";
@@ -98,7 +97,7 @@ export async function GET(req: NextRequest) {
       provider: "google",
     });
 
-    const response = NextResponse.redirect(new URL(safeReturnTo, req.url));
+    const response = NextResponse.redirect(new URL(safeReturnTo, req.nextUrl.origin));
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
       value: token,
@@ -110,8 +109,8 @@ export async function GET(req: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    console.error("Google OAuth dev fallback error:", error);
-    return NextResponse.redirect(new URL("/login?error=oauth_failed", req.url));
+  } catch (error: any) {
+    console.error("Google OAuth error:", error);
+    return NextResponse.redirect(new URL("/login?error=oauth_failed", req.nextUrl.origin));
   }
 }

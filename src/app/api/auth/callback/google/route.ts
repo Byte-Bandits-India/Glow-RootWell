@@ -3,36 +3,36 @@ import { eq } from "drizzle-orm";
 import { db, ensureDbInitialized } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { createSessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
-import { connection } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  await connection();
-  const searchParams = req.nextUrl.searchParams;
-  const code = searchParams.get("code");
-  const state = searchParams.get("state");
-  const error = searchParams.get("error");
-
-  const storedState = req.cookies.get("google_oauth_state")?.value;
-
-  if (error || !code || (storedState && state !== storedState)) {
-    return NextResponse.redirect(
-      new URL("/login?error=oauth_cancelled", req.url)
-    );
-  }
-
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri =
-    process.env.GOOGLE_REDIRECT_URI ||
-    `${req.nextUrl.origin}/api/auth/callback/google`;
-
-  if (!clientId || !clientSecret) {
-    return NextResponse.redirect(
-      new URL("/login?error=missing_credentials", req.url)
-    );
-  }
-
   try {
+    const searchParams = req.nextUrl.searchParams;
+    const code = searchParams.get("code");
+    const state = searchParams.get("state");
+    const error = searchParams.get("error");
+
+    const storedState = req.cookies.get("google_oauth_state")?.value;
+
+    if (error || !code || (storedState && state !== storedState)) {
+      return NextResponse.redirect(
+        new URL("/login?error=oauth_cancelled", req.nextUrl.origin)
+      );
+    }
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri =
+      process.env.GOOGLE_REDIRECT_URI ||
+      `${req.nextUrl.origin}/api/auth/callback/google`;
+
+    if (!clientId || !clientSecret) {
+      return NextResponse.redirect(
+        new URL("/login?error=missing_credentials", req.nextUrl.origin)
+      );
+    }
+
     // 1. Exchange authorization code for Google access token
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     if (!tokenRes.ok) {
       const errText = await tokenRes.text();
       console.error("Google token exchange error:", errText);
-      return NextResponse.redirect(new URL("/login?error=token_failed", req.url));
+      return NextResponse.redirect(new URL("/login?error=token_failed", req.nextUrl.origin));
     }
 
     const tokenData = await tokenRes.json();
@@ -61,21 +61,21 @@ export async function GET(req: NextRequest) {
     });
 
     if (!profileRes.ok) {
-      return NextResponse.redirect(new URL("/login?error=profile_failed", req.url));
+      return NextResponse.redirect(new URL("/login?error=profile_failed", req.nextUrl.origin));
     }
 
     const profile = await profileRes.json();
     const { id: googleId, email, name, picture } = profile;
 
     if (!email) {
-      return NextResponse.redirect(new URL("/login?error=email_missing", req.url));
+      return NextResponse.redirect(new URL("/login?error=email_missing", req.nextUrl.origin));
     }
 
     await ensureDbInitialized();
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // 3. Look up existing user in SQLite
+    // 3. Look up existing user in SQLite / D1
     const existing = await db
       .select()
       .from(users)
@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
       userId = crypto.randomUUID();
       finalName = name || "Avyaya Member";
 
-      // Insert new Google user into SQLite
+      // Insert new Google user into DB
       await db.insert(users).values({
         id: userId,
         name: finalName,
@@ -140,7 +140,7 @@ export async function GET(req: NextRequest) {
         ? returnCookie
         : "/";
 
-    const response = NextResponse.redirect(new URL(targetUrl, req.url));
+    const response = NextResponse.redirect(new URL(targetUrl, req.nextUrl.origin));
 
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
@@ -159,6 +159,6 @@ export async function GET(req: NextRequest) {
     return response;
   } catch (error) {
     console.error("Google OAuth callback exception:", error);
-    return NextResponse.redirect(new URL("/login?error=oauth_exception", req.url));
+    return NextResponse.redirect(new URL("/login?error=oauth_exception", req.nextUrl.origin));
   }
 }

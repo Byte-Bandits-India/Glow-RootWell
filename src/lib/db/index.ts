@@ -7,11 +7,16 @@ function getCloudflareEnv(): any {
   try {
     const symbol = Symbol.for("__cloudflare-context__");
     const ctx = (globalThis as any)[symbol];
-    if (ctx?.env?.DB) {
+    if (ctx?.env) {
       return ctx.env;
     }
   } catch {}
   return null;
+}
+
+export function getD1Database(): any {
+  const env = getCloudflareEnv();
+  return env?.DB || env?.avyaya_db || null;
 }
 
 let _cachedD1Db: any = null;
@@ -19,10 +24,10 @@ let _cachedLibsqlDb: any = null;
 let _cachedLibsqlClient: Client | null = null;
 
 export function getDb(): any {
-  const env = getCloudflareEnv();
-  if (env?.DB) {
+  const d1 = getD1Database();
+  if (d1) {
     if (!_cachedD1Db) {
-      _cachedD1Db = drizzleD1(env.DB, { schema });
+      _cachedD1Db = drizzleD1(d1, { schema });
     }
     return _cachedD1Db;
   }
@@ -41,13 +46,13 @@ export function getDb(): any {
 }
 
 export function getClient(): any {
-  const env = getCloudflareEnv();
-  if (env?.DB) {
+  const d1 = getD1Database();
+  if (d1) {
     return {
       execute: async (statement: string | { sql: string; args?: any[] }) => {
         const sql = typeof statement === "string" ? statement : statement.sql;
         const args = typeof statement === "string" ? [] : (statement.args || []);
-        const stmt = args.length > 0 ? env.DB.prepare(sql).bind(...args) : env.DB.prepare(sql);
+        const stmt = args.length > 0 ? d1.prepare(sql).bind(...args) : d1.prepare(sql);
         const res = await stmt.all();
         return {
           rows: res.results || [],
@@ -60,9 +65,9 @@ export function getClient(): any {
         const d1Statements = statements.map((st) => {
           const sql = typeof st === "string" ? st : st.sql;
           const args = typeof st === "string" ? [] : (st.args || []);
-          return args.length > 0 ? env.DB.prepare(sql).bind(...args) : env.DB.prepare(sql);
+          return args.length > 0 ? d1.prepare(sql).bind(...args) : d1.prepare(sql);
         });
-        const results = await env.DB.batch(d1Statements);
+        const results = await d1.batch(d1Statements);
         return results.map((r: any) => ({
           rows: r.results || [],
           columns: [],
@@ -236,8 +241,8 @@ export async function ensureDbInitialized() {
 
     // In local development, if prompts table is empty, auto-seed from d1/prompts.sql
     try {
-      const env = getCloudflareEnv();
-      if (!env?.DB) {
+      const d1 = getD1Database();
+      if (!d1) {
         const check = await client.execute("SELECT count(*) as c FROM prompts");
         const count = Number((check.rows[0] as any)?.c || 0);
         if (count === 0) {

@@ -3,10 +3,10 @@ import { eq, or } from "drizzle-orm";
 import { db, client, ensureDbInitialized } from "@/lib/db";
 import { users, sessions, orders } from "@/lib/db/schema";
 import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
-import { connection } from "next/server";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  await connection();
   try {
     const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
     if (!token) {
@@ -81,9 +81,6 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error: any) {
-    if (error?.digest === "NEXT_PRERENDER_INTERRUPTED") {
-      throw error;
-    }
     console.error("Delete account error:", error);
     return NextResponse.json(
       { error: "Failed to delete account. Please try again." },
@@ -96,4 +93,3 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   return POST(req);
 }
-
