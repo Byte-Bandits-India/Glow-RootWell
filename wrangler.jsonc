@@ -1,23 +1,23 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "avyaya",
-  "main": ".open-next/worker.js",
-  "compatibility_date": "2026-10-23",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
-  "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "avyaya-db",
-      "database_id": "2a23192a-bb66-46bb-8dc2-4698cf8b2f30"
-    }
-  ],
-  "observability": {
-    "enabled": true
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "avyaya",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-10-23",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "avyaya-db",
+			"database_id": "d67bef67-cbff-4c5e-853f-66d596da1581"
+		}
+	],
+	"observability": {
+		"enabled": true
+	}
 }
