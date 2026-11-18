@@ -12,7 +12,7 @@ This document contains the complete operational documentation for the **Avyaya**
 * **Local Database:** SQLite / libSQL (`avyaya.db`) via `@libsql/client`.
 * **Authentication:** Jose JWT with HTTP-only cookies + Google OAuth 2.0.
 * **Payments:** Razorpay Payment Gateway integration.
-* **Live Production URL:** `https://avyaya.abrahambillclinton.workers.dev`
+* **Live Production URL:** `https://avyaya.xylozentechnologies.workers.dev`
 * **GitHub Repository:** `Byte-Bandits-India/Glow-RootWell` (`main` branch)
 
 ```
@@ -140,7 +140,7 @@ Environment variables in Cloudflare are stored in **Workers & Pages** → **`avy
 | `AUTH_SECRET` | Secret (Encrypted) | 32+ character key for JWT cookie signing | `avyaya_super_secret_jwt_key_...` |
 | `GOOGLE_CLIENT_ID` | Plain text | Google Cloud OAuth Client ID | `435076...apps.googleusercontent.com` |
 | `GOOGLE_CLIENT_SECRET` | Secret (Encrypted) | Google Cloud OAuth Client Secret | `GOCSPX-...` |
-| `GOOGLE_REDIRECT_URI` | Plain text | Google OAuth callback endpoint | `https://avyaya.abrahambillclinton.workers.dev/api/auth/callback/google` |
+| `GOOGLE_REDIRECT_URI` | Plain text | Google OAuth callback endpoint | `https://avyaya.xylozentechnologies.workers.dev/api/auth/callback/google` |
 | `RAZORPAY_KEY_ID` | Plain text | Razorpay Key ID | `rzp_test_...` / `rzp_live_...` |
 | `RAZORPAY_KEY_SECRET` | Secret (Encrypted) | Razorpay Secret Key | `LyyI22...` |
 | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | Plain text | Public Razorpay key for checkout modal | `rzp_test_...` / `rzp_live_...` |
@@ -240,7 +240,7 @@ To see live server requests, errors, and console outputs from Cloudflare Workers
 ```bash
 npx wrangler tail avyaya
 ```
-Keep this terminal open, visit `https://avyaya.abrahambillclinton.workers.dev`, and watch incoming requests in real time.
+Keep this terminal open, visit `https://avyaya.xylozentechnologies.workers.dev`, and watch incoming requests in real time.
 
 ### Resolving Error 1101 ("Worker threw exception")
 If Error 1101 ever returns:
