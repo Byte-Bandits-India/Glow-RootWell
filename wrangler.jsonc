@@ -11,13 +11,12 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
-	// Once xylozentech.com is added as a Website in your Cloudflare account, uncomment this route:
-	// "routes": [
-	// 	{
-	// 		"pattern": "avyaya.xylozentech.com",
-	// 		"custom_domain": true
-	// 	}
-	// ],
+	"routes": [
+		{
+			"pattern": "avyaya.xylozentech.com",
+			"custom_domain": true
+		}
+	],
 	"d1_databases": [
 		{
 			"binding": "DB",
